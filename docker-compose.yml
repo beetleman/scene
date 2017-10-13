@@ -1,0 +1,23 @@
+version: "2"
+
+services:
+  app:
+    extends:
+      file: ./docker-compose-base.yml
+      service: dev-base
+    links:
+      - testrpc
+    command: app
+
+  repl:
+    links:
+      - testrpc
+    extends:
+      file: ./docker-compose-base.yml
+      service: dev-base
+    command: repl
+
+  testrpc:
+    build:
+      context: ./development
+      dockerfile: ./Dockerfile.testrpc

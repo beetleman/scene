@@ -1,6 +1,7 @@
 (defproject scene "0.1.0-SNAPSHOT"
   :description "FIXME: write this!"
   :url "http://example.com/FIXME"
+  :repositories {"sonatype-oss-public" "https://oss.sonatype.org/content/groups/public/"}
   :dependencies [[bidi "2.1.2"]
                  [com.cemerick/piggieback "0.2.2"]
                  [com.taoensso/timbre "4.10.0"]
@@ -9,14 +10,19 @@
                  [macchiato/env "0.0.6"]
                  [mount "0.1.11"]
                  [org.clojure/clojure "1.8.0"]
-                 [org.clojure/clojurescript "1.9.908"]]
+                 [org.clojure/clojurescript "1.9.908"]
+                 ;; for cider repl
+                 [org.clojure/tools.nrepl "0.2.12" :exclusions [org.clojure/clojure]]]
   :min-lein-version "2.0.0"
   :jvm-opts ^:replace ["-Xmx1g" "-server"]
   :plugins [[lein-doo "0.1.8"]
             [lein-ancient "0.6.12"]
             [macchiato/lein-npm "0.6.3"]
             [lein-figwheel "0.5.14"]
-            [lein-cljsbuild "1.1.7"]]
+            [lein-cljsbuild "1.1.7"]
+            ;; for cider repl
+            [refactor-nrepl "2.4.0-SNAPSHOT"]
+            [cider/cider-nrepl "0.16.0-SNAPSHOT"]]
   :npm {:dependencies [[source-map-support "0.4.6"]]
         :write-package-json true}
   :source-paths ["src" "target/classes"]
@@ -41,7 +47,6 @@
                               :source-map-timestamp false}}}}
     :figwheel
     {:http-server-root "public"
-     :nrepl-port 7000
      :reload-clj-files {:clj false :cljc true}
      :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
     :source-paths ["env/dev"]
@@ -71,11 +76,20 @@
                       :target        :nodejs
                       :optimizations :simple
                       :pretty-print  false}}}}}}
+  :repl-options
+  {:host "0.0.0.0"
+   :port 7000
+   :headless true}
+
   :aliases
   {"build" ["do"
             ["clean"]
             ["npm" "install"]
             ["figwheel" "dev"]]
+   "repl-dev" ["do"
+                ["clean"]
+                ["npm" "install"]
+                ["repl" ":headless"]]
    "package" ["do"
               ["clean"]
               ["npm" "install"]

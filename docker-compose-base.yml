@@ -1,0 +1,15 @@
+version: "2"
+
+services:
+  dev-base:
+    build:
+      context: .
+      dockerfile: ./development/Dockerfile.dev
+    volumes:
+      - .:/app
+    ports:
+      - "7000:7000"
+      - "3000:3000"
+    environment:
+      - RPC_HOST=testrpc
+      - HOST=0.0.0.0
