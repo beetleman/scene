@@ -1,4 +1,10 @@
-## Welcome to scene
+## Welcome to SCENE
+
+SCENE - Smart Contract Events listeNEr
+
+## TODO:
+
+- [] write real README
 
 ### Prequisites
 
