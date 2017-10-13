@@ -12,10 +12,11 @@
                  [org.clojure/clojurescript "1.9.908"]]
   :min-lein-version "2.0.0"
   :jvm-opts ^:replace ["-Xmx1g" "-server"]
-  :plugins [[lein-doo "0.1.7"]
+  :plugins [[lein-doo "0.1.8"]
+            [lein-ancient "0.6.12"]
             [macchiato/lein-npm "0.6.3"]
-            [lein-figwheel "0.5.13"]
-            [lein-cljsbuild "1.1.5"]]
+            [lein-figwheel "0.5.14"]
+            [lein-cljsbuild "1.1.7"]]
   :npm {:dependencies [[source-map-support "0.4.6"]]
         :write-package-json true}
   :source-paths ["src" "target/classes"]
@@ -25,7 +26,7 @@
   {:dev
    {:npm {:package {:main "target/out/scene.js"
                     :scripts {:start "node target/out/scene.js"}}}
-    :dependencies [[figwheel-sidecar "0.5.13"]]
+    :dependencies [[figwheel-sidecar "0.5.14"]]
     :cljsbuild
     {:builds {:dev
               {:source-paths ["env/dev" "src"]
@@ -80,6 +81,10 @@
               ["npm" "install"]
               ["with-profile" "release" "npm" "init" "-y"]
               ["with-profile" "release" "cljsbuild" "once"]]
+
    "test" ["do"
+           ["npm" "install"]
+           ["with-profile" "test" "doo" "node" "once"]]
+   "test-watch" ["do"
            ["npm" "install"]
            ["with-profile" "test" "doo" "node"]]})
