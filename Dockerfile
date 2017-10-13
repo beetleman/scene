@@ -1,6 +1,6 @@
 FROM mhart/alpine-node:latest
 
-MAINTAINER Your Name <you@example.com>
+MAINTAINER Mateusz Probachta <mateusz.probachta@gmail.com>
 
 # Create app directory
 RUN mkdir -p /scene
