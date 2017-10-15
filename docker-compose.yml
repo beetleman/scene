@@ -7,11 +7,13 @@ services:
       service: dev-base
     links:
       - testrpc
+      - redis
     command: app
 
   repl:
     links:
       - testrpc
+      - redis
     extends:
       file: ./docker-compose-base.yml
       service: dev-base
@@ -21,3 +23,6 @@ services:
     build:
       context: ./development
       dockerfile: ./Dockerfile.testrpc
+
+  redis:
+    image: redis:4-alpine

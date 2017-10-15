@@ -11,6 +11,7 @@
                  [mount "0.1.11"]
                  [org.clojure/clojure "1.8.0"]
                  [org.clojure/clojurescript "1.9.908"]
+                 [org.clojure/core.async "0.3.443"]
                  ;; for cider repl
                  [org.clojure/tools.nrepl "0.2.12" :exclusions [org.clojure/clojure]]]
   :min-lein-version "2.0.0"
@@ -23,7 +24,9 @@
             ;; for cider repl
             [refactor-nrepl "2.4.0-SNAPSHOT"]
             [cider/cider-nrepl "0.16.0-SNAPSHOT"]]
-  :npm {:dependencies [[source-map-support "0.4.6"]]
+  :npm {:dependencies [[source-map-support "0.4.6"]
+                       [web3 "1.0.0-beta.23"]
+                       [redis "2.8.0"]]
         :write-package-json true}
   :source-paths ["src" "target/classes"]
   :clean-targets ["target"]

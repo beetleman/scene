@@ -2,7 +2,9 @@
   (:require
     [bidi.bidi :as bidi]
     [hiccups.runtime]
-    [macchiato.util.response :as r])
+    [macchiato.util.response :as r]
+    [scene.db :as db]
+    [scene.web3 :as web3])
   (:require-macros
     [hiccups.core :refer [html]]))
 
