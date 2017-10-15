@@ -1,0 +1,12 @@
+FROM node:8.7.0-alpine
+
+MAINTAINER Mateusz Probachta <mateusz.probachta@gmail.com>
+EXPOSE 8545
+
+RUN yarn global add truffle@3.4.11
+
+RUN mkdir -p /app
+ADD ./development /app
+WORKDIR /app
+
+CMD ./run-truffle.sh

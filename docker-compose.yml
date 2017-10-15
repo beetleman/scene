@@ -24,5 +24,15 @@ services:
       context: ./development
       dockerfile: ./Dockerfile.testrpc
 
+
+  truffle:
+    build:
+      context: .
+      dockerfile: ./development/Dockerfile.truffle
+    volumes:
+      - ./development:/app
+    environment:
+      - RPC_HOST=testrpc
+
   redis:
     image: redis:4-alpine
