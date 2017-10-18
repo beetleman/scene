@@ -9,7 +9,8 @@ services:
       - .:/app
     ports:
       - "7000:7000"
-      - "3000:3000"
+      - "3001:3000"
+      - "9229:9229"
     environment:
       - RPC_URL=http://testrpc:8545
       - REDIS_URL=redis://redis:6379/0

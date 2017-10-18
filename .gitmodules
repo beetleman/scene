@@ -1,0 +1,3 @@
+[submodule "development/docker-eth-env"]
+	path = development/docker-eth-env
+	url = git@github.com:beetleman/docker-eth-env.git

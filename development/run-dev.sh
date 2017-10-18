@@ -9,7 +9,7 @@ function scene {
     while `sleep 1`;
     do
         if [ -f $TARGET ]; then
-            node --inspect $TARGET
+            node --inspect=0.0.0.0:9229  $TARGET
         fi
     done;
 }
