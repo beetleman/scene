@@ -1,7 +1,11 @@
 (ns scene.utils
-  (:require [clojure.core.async
-             :refer [<! chan]])
-    (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
+  (:require [clojure.core.async :refer [<! chan put!]])
+  (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
+
+
+(defn callback-chan-fn [ch]
+  (fn [error data]
+    (put! ch {:data (js->clj data) :error (js->clj error)})))
 
 
 (defn callback-log-fn [desc]

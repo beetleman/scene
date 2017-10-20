@@ -22,12 +22,12 @@
   (let [ch (chan)
         f (.filter (.. web3 -eth)
                    #js{:fromBlock "latest"})]
-    (.watch f #(put! ch (js->clj {:error %1 :data %2})))
+    (.watch f (utils/callback-chan-fn ch))
     {:chan ch :stop #(.stopWatching f)}))
 
 
 (defstate log-watcher
-  :start (start-log-watcher web3)
+  :start (start-log-watcher)
   :stop ((:stop @log-watcher)))
 
 
