@@ -24,29 +24,29 @@
             ;; for cider repl
             [refactor-nrepl "2.4.0-SNAPSHOT"]
             [cider/cider-nrepl "0.16.0-SNAPSHOT"]]
-  :npm {:dependencies [[source-map-support "0.4.6"]
-                       [web3 "0.20.2"]
-                       [redis "2.8.0"]]
+  :npm {:dependencies       [[source-map-support "0.4.6"]
+                             [web3 "0.20.2"]
+                             [redis "2.8.0"]]
         :write-package-json true}
   :source-paths ["src" "target/classes"]
   :clean-targets ["target"]
   :target-path "target"
   :profiles
   {:dev
-   {:npm {:package {:main "target/out/scene.js"
-                    :scripts {:start "node target/out/scene.js"}}}
+   {:npm          {:package {:main    "target/out/scene.js"
+                             :scripts {:start "node target/out/scene.js"}}}
     :dependencies [[figwheel-sidecar "0.5.14"]]
     :cljsbuild
     {:builds {:dev
               {:source-paths ["env/dev" "src"]
                :figwheel     true
-               :compiler     {:main          scene.app
-                              :output-to     "target/out/scene.js"
-                              :output-dir    "target/out"
-                              :target        :nodejs
-                              :optimizations :none
-                              :pretty-print  true
-                              :source-map    true
+               :compiler     {:main                 scene.app
+                              :output-to            "target/out/scene.js"
+                              :output-dir           "target/out"
+                              :target               :nodejs
+                              :optimizations        :none
+                              :pretty-print         true
+                              :source-map           true
                               :source-map-timestamp false}}}}
     :figwheel
     {:http-server-root "public"
@@ -59,7 +59,7 @@
     {:builds
      {:test
       {:source-paths ["env/test" "src" "test"]
-       :compiler     {:main scene.app
+       :compiler     {:main          scene.runner
                       :output-to     "target/test/scene.js"
                       :target        :nodejs
                       :optimizations :none
@@ -67,7 +67,7 @@
                       :source-map    true}}}}
     :doo {:build "test"}}
    :release
-   {:npm {:package {:main "target/release/scene.js"
+   {:npm {:package {:main    "target/release/scene.js"
                     :scripts {:start "node target/release/scene.js"}}}
     :cljsbuild
     {:builds
@@ -80,28 +80,28 @@
                       :optimizations :simple
                       :pretty-print  false}}}}}}
   :repl-options
-  {:host "0.0.0.0"
-   :port 7000
+  {:host     "0.0.0.0"
+   :port     7000
    :headless true}
 
   :aliases
-  {"build" ["do"
-            ["clean"]
-            ["npm" "install"]
-            ["figwheel" "dev"]]
+  {"build"    ["do"
+               ["clean"]
+               ["npm" "install"]
+               ["figwheel" "dev"]]
    "repl-dev" ["do"
-                ["clean"]
-                ["npm" "install"]
-                ["repl" ":headless"]]
-   "package" ["do"
-              ["clean"]
-              ["npm" "install"]
-              ["with-profile" "release" "npm" "init" "-y"]
-              ["with-profile" "release" "cljsbuild" "once"]]
+               ["clean"]
+               ["npm" "install"]
+               ["repl" ":headless"]]
+   "package"  ["do"
+               ["clean"]
+               ["npm" "install"]
+               ["with-profile" "release" "npm" "init" "-y"]
+               ["with-profile" "release" "cljsbuild" "once"]]
 
-   "test" ["do"
-           ["npm" "install"]
-           ["with-profile" "test" "doo" "node" "once"]]
+   "test"       ["do"
+                 ["npm" "install"]
+                 ["with-profile" "test" "doo" "node" "once"]]
    "test-watch" ["do"
-           ["npm" "install"]
-           ["with-profile" "test" "doo" "node"]]})
+                 ["npm" "install"]
+                 ["with-profile" "test" "doo" "node"]]})

@@ -1,9 +1,4 @@
 (ns scene.core-test
-  (:require
-    [cljs.test :refer-macros [is are deftest testing use-fixtures]]
-    [scene.core]))
+  (:require [scene.core :as sut]))
 
-(deftest test-core
-  (is (= true true)))
-
-
+;; checking only load here
