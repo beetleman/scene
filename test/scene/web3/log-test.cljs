@@ -1,5 +1,5 @@
-(ns scene.web3-test
-  (:require [scene.web3 :as sut]
+(ns scene.web3.log-test
+  (:require [scene.web3.log :as sut]
             [clojure.core.async :refer [>! chan]]
             [cljs.test :as t :include-macros true])
     (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
