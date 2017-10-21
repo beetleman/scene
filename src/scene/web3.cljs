@@ -18,12 +18,38 @@
 (set! (.-web3 js/global) web3)
 
 
-(defn start-log-watcher []
+(defn log-watch-callback-fn [ch last-block]
+  (fn [error data]
+    (let [r (utils/callback->clj error data)]
+      (put! ch r)
+      (when-not error
+        (->> r :data :blockNumber (reset! last-block))))))
+
+
+(defn create-log-watcher
+  "create log watcher from `from-block` and put all arived dat into `ch`"
+  [ch from-block]
+  (-> (.filter (.. web3 -eth)
+               #js{:fromBlock from-block})
+      (.watch (utils/callback-chan-fn ch))))
+
+
+(defn start-log-watcher
+  "start watching ethereum log from latest block"
+  []
   (let [ch (chan)
-        f (.filter (.. web3 -eth)
-                   #js{:fromBlock "latest"})]
-    (.watch f (utils/callback-chan-fn ch))
-    {:chan ch :stop #(.stopWatching f)}))
+        watcher (create-log-watcher ch "latest")]
+    {:chan ch :stop #(.stopWatching watcher)}))
+
+
+(defn last-block-number
+  "return atom with last block number from `ch`"
+  [ch]
+  (let [last-block (atom 0)]
+    (go-loop []
+      (let [block-number (-> ch <! :blockNumber)])
+      (recur))
+    last-block))
 
 
 (defstate log-watcher
@@ -38,8 +64,8 @@
                   :chan
                   (<!)
                   :data
-                  clj->js
-                  (.log js/console))
+                  :blockNumber
+                  (.log js/console "block"))
              (when @running (recur)))
           {:stop #(reset! running false)})
   :stop ((:stop @log-loger)))
