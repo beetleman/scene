@@ -43,13 +43,35 @@
 
 
 (defn last-block-number
-  "return atom with last block number from `ch`"
-  [ch]
-  (let [last-block (atom 0)]
-    (go-loop []
-      (let [block-number (-> ch <! :blockNumber)])
-      (recur))
-    last-block))
+  "return atom with last block number from `blocks-ch`"
+  [blocks-ch]
+  (let [block-number (atom 0)]
+    (go-loop [current-block-number 0]
+      (when (> current-block-number @block-number)
+        (reset! block-number current-block-number))
+      (recur (:blockNumber (<! blocks-ch))))
+    block-number))
+
+
+(defn create-block-ranges
+  "create block ranges for `web3.eth.get`"
+  [from to step]
+  (map #(hash-map :fromBlock (first %) :toBlock (last %))
+       (partition-all (inc step) (range from to))))
+
+(defn create-log-getter
+  "create log getter geting block givent in `ranges-ch` chan
+  and put them on `logs-ch` chan"
+  [ranges-ch logs-ch]
+  (go-loop [range (<! ranges-ch)]
+    (-> (.filter (.. web3 -eth) (clj->js range))
+        (.get (utils/callback-chan-seq-fn logs-ch)))
+    (recur (<! ranges-ch))))
+
+
+(defn start-log-getter
+  "start log getter which gets logs from 0 to `to-block`"
+  [to-block])
 
 
 (defstate log-watcher
