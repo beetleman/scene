@@ -3,7 +3,7 @@
              :as a
              :refer [put! >! <! chan sliding-buffer close! alts! timeout]]
             [scene.utils :as utils])
-    (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
+  (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
 
 
 (defn watch-callback-fn [ch last-block]

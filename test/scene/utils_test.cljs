@@ -36,3 +36,9 @@
                (t/is (= (a/<! ch)
                         {:data 1 :error nil}))
                (done)))))
+
+(t/deftest clj->json
+  (t/is (= (sut/clj->json "json")
+           "\"json\""))
+  (t/is (= (sut/clj->json {:numbers [1 2 3]})
+           "{\"numbers\":[1,2,3]}")))

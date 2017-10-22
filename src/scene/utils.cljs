@@ -24,3 +24,8 @@
     (if error
       (put! ch (callback->clj error nil))
       (onto-chan ch (map #(callback->clj nil %) data) false))))
+
+(defn clj->json
+  "convert clojure object to json"
+  [ds]
+  (.stringify js/JSON (clj->js ds)))

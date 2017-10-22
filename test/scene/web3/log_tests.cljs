@@ -3,7 +3,8 @@
             [clojure.core.async :refer [>! chan]]
             [cljs.test :as t :include-macros true]
             [scene.web3.fixtures :as fixtures])
-    (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
+  (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
+
 
 (t/deftest test-last-block-number
   (let [ch (chan 1)
