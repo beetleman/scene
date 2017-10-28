@@ -14,3 +14,13 @@ services:
     environment:
       - RPC_URL=http://testrpc:8545
       - REDIS_URL=redis://redis:6379/0
+
+  test-base:
+    build:
+      context: .
+      dockerfile: ./development/Dockerfile.dev
+    volumes:
+      - .:/app
+    environment:
+      - RPC_URL=http://testrpc:8545
+      - REDIS_URL=redis://redis:6379/0

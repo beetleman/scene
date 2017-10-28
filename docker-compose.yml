@@ -5,9 +5,13 @@ services:
     extends:
       file: ./docker-compose-base.yml
       service: dev-base
+    depends_on:
+      - truffle
     links:
       - testrpc
       - redis
+    volumes:
+      - m2-repo:/root/.m2
     command: app
 
   repl:
@@ -19,7 +23,35 @@ services:
     extends:
       file: ./docker-compose-base.yml
       service: dev-base
+    volumes:
+      - m2-repo:/root/.m2
     command: repl
+
+  test-watch:
+    links:
+      - testrpc
+      - redis
+    depends_on:
+      - truffle
+    extends:
+      file: ./docker-compose-base.yml
+      service: test-base
+    volumes:
+      - m2-repo:/root/.m2
+    command: lein test-watch
+
+  test:
+    links:
+      - testrpc
+      - redis
+    depends_on:
+      - truffle
+    extends:
+      file: ./docker-compose-base.yml
+      service: test-base
+    volumes:
+      - m2-repo:/root/.m2
+    command: lein test
 
   testrpc:
     build:
@@ -41,3 +73,6 @@ services:
 
   redis:
     image: redis:4-alpine
+
+volumes:
+  m2-repo:

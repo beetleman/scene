@@ -14,15 +14,19 @@ function scene {
     done;
 }
 
-scene &
-
 case $1 in
-    app)
-        echo "starting build..."
-        lein build
-        ;;
-    repl)
-        echo "starting repl..."
-        lein repl-dev
-        ;;
+  app)
+    echo "starting build..."
+    scene &
+    lein build
+    ;;
+  repl)
+    echo "starting repl..."
+    scene &
+    lein repl-dev
+    ;;
+  *)
+    echo "starting command \"${@}\"..."
+    eval $@
+    ;;
 esac
