@@ -10,3 +10,4 @@
 (def redis-url (get @env :redis-url "redis://localhost:6379/0"))
 (def rpc-url (get @env :rpc-url "http://localhost:8545"))
 (def chunk-size (parse-number (get @env :chunk-size 100)))
+(def key-prefix (get @env :key-prefix "scene"))

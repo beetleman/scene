@@ -4,8 +4,9 @@
              :as a
              :refer [put! >! <! chan sliding-buffer close! alts! timeout]]
             [scene.config :as config]
+            [scene.db :as db]
             [scene.web3.log :as log])
-    (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
+    (:require-macros [cljs.core.async.macros :refer [go-loop]]))
 
 (def Web3 (js/require "web3"))
 
@@ -33,12 +34,12 @@
 (defstate log-loger
   :start (let [running (atom true)]
            (go-loop []
-             (->> @log-watcher
-                  :chan
-                  (<!)
-                  :data
-                  :blockNumber
-                  (.log js/console "block"))
-             (when @running (recur)))
+             (let [log (-> @log-watcher :chan (<!) :data)]
+               (->> log
+                    :blockNumber
+                    (.log js/console "block"))
+               (doseq [kf [db/log-address-key db/log-topic-key]]
+                 (<! (db/save-log log kf)))
+               (when @running (recur))))
           {:stop #(reset! running false)})
   :stop ((:stop @log-loger)))
