@@ -1,5 +1,6 @@
 (ns scene.web3.core
   (:require [mount.core :refer [defstate]]
+            [taoensso.timbre :refer-macros [info]]
             [clojure.core.async
              :as a
              :refer [put! >! <! chan sliding-buffer close! alts! timeout]]
@@ -31,15 +32,16 @@
   :start (start-log-watcher)
   :stop ((:stop @log-watcher)))
 
-(defstate log-loger
-  :start (let [running (atom true)]
+(defstate log-watcher-saver
+  :start (let [running  (atom true)
+               info-log (fn [log]
+                          (info (str "current block: "
+                                     (:blockNumber log))))]
            (go-loop []
              (let [log (-> @log-watcher :chan (<!) :data)]
-               (->> log
-                    :blockNumber
-                    (.log js/console "block"))
-               (doseq [kf [db/log-address-key db/log-topic-key]]
-                 (<! (db/save-log log kf)))
+               (info-log log)
+               (doseq [key-fn [db/log-address-key db/log-topic-key]]
+                 (<! (db/save-log log key-fn)))
                (when @running (recur))))
-          {:stop #(reset! running false)})
-  :stop ((:stop @log-loger)))
+           {:stop #(reset! running false)})
+  :stop ((:stop @log-watcher-saver)))
