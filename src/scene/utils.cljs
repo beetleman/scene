@@ -29,3 +29,8 @@
   "convert clojure object to json"
   [ds]
   (.stringify js/JSON (clj->js ds)))
+
+(defn json->clj
+  "convert json to clojure object"
+  [s]
+  (js->clj (.parse js/JSON s) :keywordize-keys true))

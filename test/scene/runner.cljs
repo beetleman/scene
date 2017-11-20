@@ -3,6 +3,7 @@
             [scene.core-test]
             [scene.web3.log-test]
             [scene.utils-test]
+            [scene.db-test]
             [scene.web3.event-test]))
 
 (doo-all-tests #"(scene)\..*-test")

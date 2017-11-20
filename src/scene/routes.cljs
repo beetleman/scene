@@ -1,37 +1,41 @@
 (ns scene.routes
-  (:require
-    [bidi.bidi :as bidi]
-    [hiccups.runtime]
-    [macchiato.util.response :as r]
-    [scene.db :as db]
-    [scene.web3.core :as web3])
-  (:require-macros
-    [hiccups.core :refer [html]]))
+  (:require [bidi.bidi :as bidi]
+            [hiccups.runtime]
+            [macchiato.util.response :as r]
+            [taoensso.timbre :refer-macros [info]]
+            [clojure.core.async :refer [<!]]
+            [scene.db :as db]
+            [scene.web3.core :as web3]
+            [scene.web3.event :as web3event])
+  (:require-macros [cljs.core.async.macros :refer [go]]))
 
-(defn home [req res raise]
-  (-> (html
-        [:html
-         [:head [:link {:rel "stylesheet" :href "/css/site.css"}]]
-         [:body
-          [:h2 "Hello World!"]
-          [:p
-           "Your user-agent is: "
-           (str (get-in req [:headers "user-agent"]))]]])
-      (r/ok)
-      (r/content-type "text/html")
-      (res)))
+(defn health [req res raise]
+  (r/ok {:ok true}))
 
 (defn not-found [req res raise]
-  (-> (html
-        [:html
-         [:body
-          [:h2 (:uri req) " was not found"]]])
-      (r/not-found)
-      (r/content-type "text/html")
-      (res)))
+  (r/not-found {:msg (str "`" (:uri req) "` was not found")}))
+
+(defn info-proxy [x]
+  (info x)
+  x)
+
+(defn events [req res raise]
+  (let [abi (:body req)]
+    (go
+      (r/ok (->> abi
+                 web3event/abi->signature
+                 (str "topic:")
+                 db/get-log
+                 <!
+                 :data
+                 (map db/parse-event)
+                 (assoc {} :data))))))
 
 (def routes
-  ["/" {:get home}])
+  ["/"
+   [["" {:get health}]
+    ["events" {:get events}]]])
+
 
 (defn router [req res raise]
   (if-let [{:keys [handler route-params]} (bidi/match-route* routes (:uri req) req)]
