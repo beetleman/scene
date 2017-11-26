@@ -54,11 +54,7 @@ services:
     command: lein test
 
   testrpc:
-    build:
-      context: ./development/docker-eth-env
-    volumes:
-      - "/etc/localtime:/etc/localtime:ro"
-
+    image: beetleman/docker-eth-env:0.0.3
 
   truffle:
     build:
