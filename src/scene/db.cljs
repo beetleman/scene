@@ -69,5 +69,8 @@
   "get log by `key` (any key) and return"
   [key]
   (let [ch (chan)]
-    (.hgetall @conn key (utils/callback-chan-fn ch))
-    ch))
+    (go
+      (.hgetall @conn key (utils/callback-chan-fn ch))
+      (->> (<! ch)
+          :data
+          (map parse-event)))))

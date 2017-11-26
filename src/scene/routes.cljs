@@ -32,8 +32,6 @@
                  key
                  db/get-log
                  <!
-                 :data
-                 (map db/parse-event)
                  (assoc {} :data))))))
 
 (def routes
