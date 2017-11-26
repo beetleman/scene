@@ -38,10 +38,12 @@
                           (info (str "current block: "
                                      (:blockNumber log))))]
            (go-loop []
-             (let [log (-> @log-watcher :chan (<!) :data)]
+             (let [log (-> @log-watcher
+                           :chan
+                           <!
+                           :data)]
                (info-log log)
-               (doseq [key-fn [db/log-address-key db/log-topic-key]]
-                 (<! (db/save-log log key-fn)))
+               (<! (db/save-log log))
                (when @running (recur))))
            {:stop #(reset! running false)})
   :stop ((:stop @log-watcher-saver)))

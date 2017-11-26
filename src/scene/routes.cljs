@@ -20,11 +20,16 @@
   x)
 
 (defn events [req res raise]
-  (let [abi (:body req)]
+  (let [abi (:body req)
+        {:keys [address]} (:params req)
+        key (if address
+              (fn [t]
+                (db/address-key address t))
+              db/topic-key)]
     (go
       (r/ok (->> abi
                  web3event/abi->signature
-                 (str "topic:")
+                 key
                  db/get-log
                  <!
                  :data
