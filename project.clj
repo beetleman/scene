@@ -12,6 +12,7 @@
                  [org.clojure/clojure "1.8.0"]
                  [org.clojure/clojurescript "1.9.946"]
                  [org.clojure/core.async "0.3.443"]
+                 [com.cognitect/transit-cljs "0.8.243"]
                  ;; for cider repl
                  [org.clojure/tools.nrepl "0.2.12" :exclusions [org.clojure/clojure]]]
   :min-lein-version "2.0.0"

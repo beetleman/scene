@@ -56,13 +56,13 @@
      (.zadd @conn
              key
              (:blockNumber log)
-             (utils/clj->json log)
+             (utils/clj->transit log)
              (utils/callback-chan-fn ch))
      ch)))
 
 (defn parse-events [raw-events decoder]
   (map #(-> %
-            utils/json->clj
+            utils/transit->clj
             decoder)
        raw-events))
 

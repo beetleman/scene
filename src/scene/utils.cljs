@@ -1,7 +1,11 @@
 (ns scene.utils
-  (:require [clojure.core.async :refer [<! chan put! onto-chan]])
+  (:require [clojure.core.async :refer [<! chan put! onto-chan]]
+            [cognitect.transit :as t])
   (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
 
+
+(def clj->transit (partial t/write (t/writer :json)))
+(def transit->clj (partial t/read (t/reader :json)))
 
 (defn callback->clj
   "convert data from node style callback function to clojure"
