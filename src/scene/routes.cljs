@@ -20,19 +20,18 @@
   x)
 
 (defn events [req res raise]
-  (let [abi (:body req)
+  (let [abi               (:body req)
         {:keys [address]} (:params req)
-        key (if address
-              (fn [t]
-                (db/address-key address t))
-              db/topic-key)]
+        decoder           (web3event/create-decoder abi)
+        key               (if address
+                            (partial db/address-key address)
+                            db/topic-key)]
     (go
-      (r/ok (->> abi
-                 web3event/abi->signature
-                 key
-                 db/get-log
-                 <!
-                 (assoc {} :data))))))
+      (r/ok {:data (-> abi
+                       web3event/abi->signature
+                       key
+                       (db/get-log decoder)
+                       <!)}))))
 
 (def routes
   ["/"

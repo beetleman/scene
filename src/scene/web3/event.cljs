@@ -11,7 +11,6 @@
   (let [event (Event. nil (clj->js event-abi) nil)]
     (fn [log]
       (-> (.decode event (clj->js log))
-          (aget "args")
           (js->clj  :keywordize-keys true)))))
 
 (defn Ox

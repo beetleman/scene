@@ -53,24 +53,25 @@
            <!))))
   ([key log]
    (let [ch (chan)]
-     (.hmset @conn
+     (.zadd @conn
              key
              (:blockNumber log)
              (utils/clj->json log)
              (utils/callback-chan-fn ch))
      ch)))
 
-
-(defn parse-event [[address raw-event]]
-  {:blockNumber address
-   :event       (utils/json->clj raw-event)})
+(defn parse-events [raw-events decoder]
+  (map #(-> %
+            utils/json->clj
+            decoder)
+       raw-events))
 
 (defn get-log
   "get log by `key` (any key) and return"
-  [key]
+  [key decoder]
   (let [ch (chan)]
     (go
-      (.hgetall @conn key (utils/callback-chan-fn ch))
-      (->> (<! ch)
+      (.zrange @conn key 0 -1 (utils/callback-chan-fn ch))
+      (-> (<! ch)
           :data
-          (map parse-event)))))
+          (parse-events decoder)))))
