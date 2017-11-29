@@ -14,7 +14,7 @@ function scene {
     done;
 }
 
-case $1 in
+case "$1" in
   app)
     echo "starting build..."
     scene &
@@ -24,6 +24,11 @@ case $1 in
     echo "starting repl..."
     scene &
     lein repl-dev
+    ;;
+  release)
+    echo "starting release..."
+    rm release -rf
+    lein release
     ;;
   *)
     echo "starting command \"${@}\"..."

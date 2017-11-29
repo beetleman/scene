@@ -5,6 +5,7 @@ SCENE - Smart Contract Events listeNEr
 ## TODO:
 
 - [] write real README
+- [] integration tests
 
 ### Prequisites
 

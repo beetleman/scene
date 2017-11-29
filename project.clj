@@ -1,6 +1,6 @@
 (defproject scene "0.1.0-SNAPSHOT"
-  :description "FIXME: write this!"
-  :url "http://example.com/FIXME"
+  :description "SCENE - Smart Contract Events listeNEr"
+  :url "https://github.com/beetleman/scene"
   :repositories {"sonatype-oss-public" "https://oss.sonatype.org/content/groups/public/"}
   :dependencies [[bidi "2.1.2"]
                  [com.cemerick/piggieback "0.2.2"]
@@ -68,14 +68,15 @@
                       :source-map    true}}}}
     :doo {:build "test"}}
    :release
-   {:npm {:package {:main    "target/release/scene.js"
-                    :scripts {:start "node target/release/scene.js"}}}
+   {:npm {:package {:main    "scene.js"
+                    :scripts {:start "node scene.js"}}
+          :root    "release"}
     :cljsbuild
     {:builds
      {:release
       {:source-paths ["env/prod" "src"]
        :compiler     {:main          scene.app
-                      :output-to     "target/release/scene.js"
+                      :output-to     "release/scene.js"
                       :language-in   :ecmascript5
                       :target        :nodejs
                       :optimizations :simple
@@ -86,20 +87,19 @@
    :headless true}
 
   :aliases
-  {"build"    ["do"
-               ["clean"]
-               ["npm" "install"]
-               ["figwheel" "dev"]]
-   "repl-dev" ["do"
-               ["clean"]
-               ["npm" "install"]
-               ["repl" ":headless"]]
-   "package"  ["do"
-               ["clean"]
-               ["npm" "install"]
-               ["with-profile" "release" "npm" "init" "-y"]
-               ["with-profile" "release" "cljsbuild" "once"]]
-
+  {"build"      ["do"
+                 ["clean"]
+                 ["npm" "install"]
+                 ["figwheel" "dev"]]
+   "repl-dev"   ["do"
+                 ["clean"]
+                 ["npm" "install"]
+                 ["repl" ":headless"]]
+   "release"    ["do"
+                 ["clean"]
+                 ["npm" "install"]
+                 ["with-profile" "release" "npm" "init" "-y"]
+                 ["with-profile" "release" "cljsbuild" "once"]]
    "test"       ["do"
                  ["npm" "install"]
                  ["with-profile" "test" "doo" "node" "once"]]

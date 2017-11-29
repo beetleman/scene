@@ -14,3 +14,6 @@ pom.xml.asc
 *.log
 /.env
 /node_modules
+/release
+package-lock.json
+package.json

@@ -27,6 +27,14 @@ services:
       - m2-repo:/root/.m2
     command: repl
 
+  release:
+    extends:
+      file: ./docker-compose-base.yml
+      service: dev-base
+    volumes:
+      - m2-repo:/root/.m2
+    command: release
+
   test-watch:
     links:
       - testrpc
