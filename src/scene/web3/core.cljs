@@ -60,5 +60,6 @@
 
 (defstate log-getter-saver
   :start (log/create-log-handler (get-chan @log-getter)
-                                 db/save-log)
+                                 db/save-log
+                                 false)
   :stop ((:stop @log-watcher-saver)))

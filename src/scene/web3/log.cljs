@@ -62,13 +62,19 @@
 
 (defn create-log-handler
   "read all logs from given `ch` channel and run `handler` function on them"
-  [ch handler]
-  (let [running (atom true)]
-    (go-loop []
-      (let [log (-> ch
-                    <!
-                    :data)]
-        (info (str "current block: " (:blockNumber log)))
-        (<! (handler log))
-        (when @running (recur))))
-    {:stop #(reset! running false)}))
+  ([ch handler]
+   (create-log-handler ch handler true))
+  ([ch handler logging?]
+   (let [running (atom true)
+         logging (if logging?
+                   (fn [log]
+                     (info (str "handling log fron block number: " (:blockNumber log))))
+                   identity)]
+     (go-loop []
+       (let [log (-> ch
+                     <!
+                     :data)]
+         (<! (handler log))
+         (logging log)
+         (when @running (recur))))
+     {:stop #(reset! running false)})))
