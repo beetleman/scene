@@ -1,5 +1,6 @@
 (ns scene.utils
   (:require [clojure.core.async :refer [<! chan put! onto-chan]]
+            [taoensso.timbre :refer-macros [error]]
             [cognitect.transit :as t])
   (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
 
@@ -24,15 +25,19 @@
 (defn callback-chan-seq-fn
   "return node style callback function for lists of items"
   [ch]
-  (fn [error data]
-    (if error
-      (put! ch (callback->clj error nil))
+  (fn [err data]
+    (if err
+      (do
+        (error (js->clj err))
+        (put! ch (callback->clj err nil)))
       (onto-chan ch (map #(callback->clj nil %) data) false))))
+
 
 (defn clj->json
   "convert clojure object to json"
   [ds]
   (.stringify js/JSON (clj->js ds)))
+
 
 (defn json->clj
   "convert json to clojure object"

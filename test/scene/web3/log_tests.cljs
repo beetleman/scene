@@ -1,6 +1,6 @@
 (ns scene.web3.log-test
   (:require [scene.web3.log :as sut]
-            [clojure.core.async :refer [>! chan]]
+            [clojure.core.async :refer [>! <! chan alts! timeout]]
             [cljs.test :as t :include-macros true]
             [scene.web3.fixtures :as fixtures])
   (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
@@ -8,15 +8,14 @@
 
 (t/deftest test-last-block-number
   (let [ch (chan 1)
-        last-block (sut/last-block-number ch)]
+        log {:data fixtures/log}
+        last-block-ch (sut/last-block-number ch)]
     (t/async done
              (go
-               (t/is (= @last-block 0))
-               (>! ch (update fixtures/log :blockNumber dec))
-               (>! ch fixtures/log)
-               (>! ch (update fixtures/log :blockNumber (comp dec dec)))
-               (>! ch (update fixtures/log :blockNumber (comp dec dec dec)))
-               (t/is (= @last-block (:blockNumber fixtures/log)))
+               (let [[last-block _] (alts! [last-block-ch (timeout 10)])]
+                 (t/is (nil? last-block)))
+               (>! ch log)
+               (t/is (= (<! last-block-ch) (get-in log [:data :blockNumber])))
                (done)))))
 
 (t/deftest test-create-block-ranges

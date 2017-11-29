@@ -1,7 +1,8 @@
 (ns scene.web3.log
   (:require [clojure.core.async
              :as a
-             :refer [put! >! <! chan sliding-buffer close! alts! timeout]]
+             :refer [put! >! <! chan sliding-buffer pipe]]
+            [taoensso.timbre :refer-macros [info]]
             [scene.utils :as utils])
   (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
 
@@ -23,14 +24,12 @@
 
 
 (defn last-block-number
-  "return atom with last block number from `blocks-ch`"
+  "return chan with last block number from `blocks-ch`"
   [blocks-ch]
-  (let [block-number (atom 0)]
-    (go-loop [current-block-number 0]
-      (when (> current-block-number @block-number)
-        (reset! block-number current-block-number))
-      (recur (:blockNumber (<! blocks-ch))))
-    block-number))
+  (let [block-number-ch (chan (sliding-buffer 1)
+                              (map #(get-in % [:data :blockNumber])))]
+    (pipe blocks-ch block-number-ch)
+    block-number-ch))
 
 
 (defn create-block-ranges
@@ -40,31 +39,36 @@
        (partition-all (inc step) (range from to))))
 
 (defn create-log-getter
-  "create log getter geting block givent in `ranges-ch` chan
+  "create log getter geting block for givent `ranges` vector
   and put them on `logs-ch` chan"
-  [web3 ranges-ch logs-ch]
-  (go-loop [range (<! ranges-ch)
-            result-ch (chan)]
-    (-> (.filter (.. web3 -eth) (clj->js range))
-        (.get (utils/callback-chan-fn result-ch)))
-    (doseq [log (:data (<! result-ch))]  ;TODO: error handlig[ignore all errors for now]
-      (>! logs-ch {:data log :erro nil}))
-    (recur (<! ranges-ch) result-ch)))
+  [web3 to-block-ch logs-ch chunk-size]
+  (let [result-ch (chan)
+        running   (atom true)]
+    (go
+      (let [ranges (create-block-ranges 0 (<! to-block-ch) chunk-size)]
+        (doseq [range ranges
+                :when @running]
+          (-> (.filter (.. web3 -eth)
+                       (clj->js range))
+              (.get (utils/callback-chan-fn result-ch)))
+
+          (info "getting logs for range" range)
+          (doseq [log   (:data (<! result-ch))
+                  :when @running]  ;TODO: error handlig (ignore all errors for now)
+            (>! logs-ch {:data log
+                         :erro nil})))))
+    {:stop #(reset! running false)}))
 
 
-;; TODO: REMOVE IT
-(def state (atom nil))
-(defn try-log-getter [web3]
-  (let [ranges (chan)
-        from 1000
-        to 2000
-        logs (chan 1000)
-        all (set (range from to))
-        get-number #(-> % :data :blockNumber)]
-    (a/onto-chan ranges
-                 (create-block-ranges from to 100)
-                 false)
-    (create-log-getter web3 ranges logs)
-    (go-loop [ seen #{}]
-      (reset! state (clojure.set/difference all seen))
-      (recur  (conj seen (get-number (<! logs)))))))
+(defn create-log-handler
+  "read all logs from given `ch` channel and run `handler` function on them"
+  [ch handler]
+  (let [running (atom true)]
+    (go-loop []
+      (let [log (-> ch
+                    <!
+                    :data)]
+        (info (str "current block: " (:blockNumber log)))
+        (<! (handler log))
+        (when @running (recur))))
+    {:stop #(reset! running false)}))

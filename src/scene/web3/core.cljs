@@ -3,7 +3,7 @@
             [taoensso.timbre :refer-macros [info]]
             [clojure.core.async
              :as a
-             :refer [put! >! <! chan sliding-buffer close! alts! timeout]]
+             :refer [put! >! <! chan sliding-buffer close! alts! timeout mult tap]]
             [scene.config :as config]
             [scene.db :as db]
             [scene.web3.log :as log])
@@ -14,36 +14,51 @@
 (def httpProvider (Web3.providers.HttpProvider. config/rpc-url))
 (def web3 (Web3. httpProvider))
 
-;; for debuging
-(set! (.-web3 js/global) web3)
+(defn get-chan
+  "get chan from state with mutl chan"
+  ([s]
+   (get-chan s (chan)))
+  ([s ch]
+   (tap (:mult-ch s) ch)
+   ch))
 
 (defn start-log-getter
   "start log getter which gets logs from 0 to `to-block`"
-  [to-block])
+  [to-block-ch]
+  (let [getter-ch (chan config/chunk-size)
+        mult-ch   (mult getter-ch)]
+    (assoc (log/create-log-getter web3 to-block-ch getter-ch config/chunk-size)
+           :mult-ch
+           mult-ch)))
 
 (defn start-log-watcher
   "start watching ethereum log from latest block"
   []
-  (let [ch (chan)
-        watcher (log/create-watcher web3 ch "latest")]
-    {:chan ch :stop #(.stopWatching watcher)}))
+  (let [watch-ch      (chan)
+        mult-ch       (mult watch-ch)
+        last-block-ch (chan (sliding-buffer 1))
+        watcher       (log/create-watcher web3 watch-ch "latest")]
+    (tap mult-ch last-block-ch)
+    {:mult-ch              mult-ch
+     :last-block-number-ch (log/last-block-number last-block-ch)
+     :stop                 #(.stopWatching watcher)}))
 
 (defstate log-watcher
   :start (start-log-watcher)
   :stop ((:stop @log-watcher)))
 
+
+(defstate log-getter
+  :start (start-log-getter (:last-block-number-ch @log-watcher))
+  :stop ((:stop @log-getter)))
+
+
 (defstate log-watcher-saver
-  :start (let [running  (atom true)
-               info-log (fn [log]
-                          (info (str "current block: "
-                                     (:blockNumber log))))]
-           (go-loop []
-             (let [log (-> @log-watcher
-                           :chan
-                           <!
-                           :data)]
-               (info-log log)
-               (<! (db/save-log log))
-               (when @running (recur))))
-           {:stop #(reset! running false)})
+  :start (log/create-log-handler (get-chan @log-watcher)
+                                 db/save-log)
+  :stop ((:stop @log-watcher-saver)))
+
+(defstate log-getter-saver
+  :start (log/create-log-handler (get-chan @log-getter)
+                                 db/save-log)
   :stop ((:stop @log-watcher-saver)))
