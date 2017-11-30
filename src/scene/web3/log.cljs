@@ -2,7 +2,7 @@
   (:require [clojure.core.async
              :as a
              :refer [put! >! <! chan sliding-buffer pipe]]
-            [taoensso.timbre :refer-macros [info]]
+            [taoensso.timbre :refer-macros [info error]]
             [scene.utils :as utils])
   (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
 
@@ -19,7 +19,8 @@
   "create log watcher from `from-block` and put all arived dat into `ch`"
   [web3 ch from-block]
   (-> (.filter (.. web3 -eth)
-               #js{:fromBlock from-block})
+               #js{:fromBlock from-block}
+               (fn [err] (when err (error err))))
       (.watch (utils/callback-chan-fn ch))))
 
 

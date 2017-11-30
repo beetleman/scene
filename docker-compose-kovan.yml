@@ -1,0 +1,43 @@
+version: "2.2"
+
+services:
+  app:
+    container_name: app-kovan
+    build:
+      context: .
+    links:
+      - kovan
+      - redis
+    ports:
+      - "8000:8000"
+    environment:
+      - RPC_URL=http://kovan:8545
+      - PORT=8000
+      - REDIS_URL=redis://redis:6379/0
+
+  kovan:
+    image: parity/parity:v1.8.3
+    container_name: parity-kovan
+    cpu_count: 1
+    cpu_percent: 50
+    volumes:
+      - chain:/root/.local/share/io.parity.ethereum
+    command: --chain kovan --unsafe-expose --pruning fast --fast-and-loose --tracing=on --fat-db=on
+
+  redis:
+    container_name: redis-kovan
+    image: redis:4-alpine
+
+  redis-commander:
+    container_name: redis-commander-kovan
+    image: rediscommander/redis-commander:latest
+    links:
+      - redis
+    environment:
+      - REDIS_HOSTS=redis
+    ports:
+      - 8081:8081
+
+
+volumes:
+  chain:

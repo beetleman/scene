@@ -1,12 +1,16 @@
 version: "2"
 
 services:
-  dev-base:
+  build-base:
     build:
       context: .
       dockerfile: ./development/Dockerfile.dev
     volumes:
       - .:/app
+
+  dev-base:
+    extends:
+      service: build-base
     ports:
       - "7000:7000"
       - "3000:3000"
@@ -16,11 +20,8 @@ services:
       - REDIS_URL=redis://redis:6379/0
 
   test-base:
-    build:
-      context: .
-      dockerfile: ./development/Dockerfile.dev
-    volumes:
-      - .:/app
+    extends:
+      service: build-base
     environment:
       - RPC_URL=http://testrpc:8545
       - REDIS_URL=redis://redis:6379/0

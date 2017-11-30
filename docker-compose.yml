@@ -1,19 +1,6 @@
 version: "2"
 
 services:
-  app:
-    extends:
-      file: ./docker-compose-base.yml
-      service: dev-base
-    depends_on:
-      - truffle
-    links:
-      - testrpc
-      - redis
-    volumes:
-      - m2-repo:/root/.m2
-    command: app
-
   repl:
     links:
       - testrpc
@@ -30,7 +17,7 @@ services:
   release:
     extends:
       file: ./docker-compose-base.yml
-      service: dev-base
+      service: build-base
     volumes:
       - m2-repo:/root/.m2
     command: release

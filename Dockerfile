@@ -1,21 +1,16 @@
-FROM mhart/alpine-node:latest
+FROM node:9.2.0-alpine
 
 MAINTAINER Mateusz Probachta <mateusz.probachta@gmail.com>
 
-# Create app directory
-RUN mkdir -p /scene
+RUN apk update && apk upgrade && \
+    apk add --no-cache bash git openssh
+
+COPY ./release /scene
 WORKDIR /scene
 
-# Install app dependencies
-COPY package.json /scene
-RUN npm install pm2 -g
-RUN npm install
-
-# Bundle app source
-COPY target/release/scene.js /scene/scene.js
-COPY public /scene/public
-
+RUN yarn install
 ENV HOST 0.0.0.0
 
 EXPOSE 3000
-CMD [ "pm2-docker", "/scene/scene.js" ]
+
+CMD yarn start
