@@ -13,6 +13,7 @@ services:
     environment:
       - RPC_URL=http://kovan:8545
       - PORT=8000
+      - CHUNK_SIZE=1000
       - REDIS_URL=redis://redis:6379/0
 
   kovan:
@@ -22,7 +23,11 @@ services:
     cpu_percent: 50
     volumes:
       - chain:/root/.local/share/io.parity.ethereum
-    command: --chain kovan --unsafe-expose --pruning fast --fast-and-loose --tracing=on --fat-db=on
+    ports:
+      - "8180:8180"
+      - "30303:30303"
+      - "8546:8546"
+    command: --chain kovan --unsafe-expose --fat-db on ui
 
   redis:
     container_name: redis-kovan

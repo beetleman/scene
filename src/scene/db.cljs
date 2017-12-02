@@ -9,6 +9,9 @@
 
 (def redis (js/require "redis"))
 
+(defstate nano
+  :start ((js/require "nano") config/couchdb-url))
+
 (defstate conn
   :start (.createClient redis config/redis-url)
   :stop (.quit @conn))

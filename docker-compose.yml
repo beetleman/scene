@@ -65,5 +65,16 @@ services:
   redis:
     image: redis:4-alpine
 
+  redis:
+    image: redis:4-alpine
+
+  couchdb:
+    image: couchdb:2.1.1
+    ports:
+      - 5984:5984
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=password
+
 volumes:
   m2-repo:

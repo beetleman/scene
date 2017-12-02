@@ -27,6 +27,7 @@
             [cider/cider-nrepl "0.16.0-SNAPSHOT"]]
   :npm {:dependencies       [[source-map-support "0.4.6"]
                              [web3 "0.20.2"]
+                             [nano "6.4.2"]
                              [redis "2.8.0"]]
         :write-package-json true}
   :source-paths ["src" "target/classes"]
