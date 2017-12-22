@@ -12,6 +12,7 @@
                  [org.clojure/clojure "1.8.0"]
                  [org.clojure/clojurescript "1.9.946"]
                  [org.clojure/core.async "0.3.443"]
+                 [funcool/promesa "1.9.0"]
                  [com.cognitect/transit-cljs "0.8.243"]
                  ;; for cider repl
                  [org.clojure/tools.nrepl "0.2.12" :exclusions [org.clojure/clojure]]]
@@ -27,8 +28,7 @@
             [cider/cider-nrepl "0.16.0-SNAPSHOT"]]
   :npm {:dependencies       [[source-map-support "0.4.6"]
                              [web3 "0.20.2"]
-                             [nano "6.4.2"]
-                             [redis "2.8.0"]]
+                             [mongodb "3.0.0-rc0"]]
         :write-package-json true}
   :source-paths ["src" "target/classes"]
   :clean-targets ["target"]

@@ -18,7 +18,8 @@ services:
     environment:
       - RPC_URL=http://testrpc:8545
       - REDIS_URL=redis://redis:6379/0
-      - COUCHDB_URL=http://admin:password@couchdb:5984
+      - MONGO_URL=mongodb://mongo:27017/dev
+      - DB_NAME=scene
 
   test-base:
     extends:
@@ -26,4 +27,5 @@ services:
     environment:
       - RPC_URL=http://testrpc:8545
       - REDIS_URL=redis://redis:6379/0
-      - COUCHDB_URL=http://admin:password@couchdb:5984
+      - MONGO_URL=mongodb://mongo:27017/test
+      - DB_NAME=scene_test

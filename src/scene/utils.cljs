@@ -1,6 +1,6 @@
 (ns scene.utils
   (:require [clojure.core.async :refer [<! chan put! onto-chan]]
-            [taoensso.timbre :refer-macros [error]]
+            [taoensso.timbre :refer-macros [error info]]
             [cognitect.transit :as t])
   (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
 
@@ -21,6 +21,17 @@
   (fn [error data]
     (put! ch (callback->clj error data))))
 
+(defn promise->chan
+  "return channel with result from promise"
+  [promise]
+  (let [ch (chan 1)]
+    (-> promise
+        (.then (fn [data]
+                 (put! ch {:data (js->clj data :keywordize-keys true)})))
+        (.catch (fn [err]
+                  (error err)
+                  (put! ch {:error (js->clj err :keywordize-keys true)}))))
+    ch))
 
 (defn callback-chan-seq-fn
   "return node style callback function for lists of items"
@@ -43,3 +54,9 @@
   "convert json to clojure object"
   [s]
   (js->clj (.parse js/JSON s) :keywordize-keys true))
+
+(defn logger
+  "logger for `->` and `->>` macros"
+  [x]
+  (js/console.log x)
+  x)

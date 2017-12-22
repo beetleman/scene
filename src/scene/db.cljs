@@ -1,21 +1,24 @@
 (ns scene.db
   (:require [mount.core :refer [defstate]]
-            [clojure.core.async
-             :as a
-             :refer [put! >! <! chan sliding-buffer close! alts! timeout]]
+            [promesa.core :as p]
             [scene.utils :as utils]
-            [scene.config :as config])
-  (:require-macros [cljs.core.async.macros :refer [go]]))
+            [scene.config :as config]))
 
-(def redis (js/require "redis"))
-
-(defstate nano
-  :start ((js/require "nano") config/couchdb-url))
+(def MongoClient (.-MongoClient (js/require "mongodb")))
 
 (defstate conn
-  :start (.createClient redis config/redis-url)
-  :stop (.quit @conn))
+  :start (.connect MongoClient
+                   config/mongo-url)
+  :stop (p/map #(.close %)
+               @conn))
 
+
+(defstate db
+  :start (-> @conn
+             (p/then #(.db % config/db-name))))
+
+(defstate logs-collection
+  :start (p/then @db #(.collection % "logs")))
 
 (defn redis-key
   "produce key with prefix"
@@ -46,35 +49,71 @@
   [log]
   (topic-key (get-topic log)))
 
+(defn create-id
+  "create `_id` for log"
+  [log]
+  (clojure.string/join ":" ((juxt :blockNumber :logIndex) log)))
+
+(defn log->db-json
+  "conver log to json accepted by couchdb, adds id to document"
+  [log]
+  (assoc log :_id (create-id log) :signature (-> log :topics first)))
+
+(defn logs->db-json
+  [logs]
+  (map log->db-json logs))
+
+(defn initializeOrderedBulkOp [collection]
+  (.initializeOrderedBulkOp collection))
+
+(defn- save-in-collection
+  [{:keys [_id] :as to-save} collection]
+  (.replaceOne collection
+           #js {:_id _id}
+           (clj->js to-save)
+           #js {:upset true}))
+
+(defn- save-in-batch
+  [{:keys [_id] :as to-save} batch]
+  (-> batch
+      (.find #js {:_id _id})
+      (.upsert)
+      (.replaceOne to-save)))
+
 (defn save-log
-  "save `log` in db, if `key` not provided function will generate keys and save data"
-  ([log]
-   (go
-     (doseq [kf [log->address-key log->topic-key]]
-       (-> (kf log)
-           (save-log log)
-           <!))))
-  ([key log]
-   (let [ch (chan)]
-     (.zadd @conn
-             key
-             (:blockNumber log)
-             (utils/clj->transit log)
-             (utils/callback-chan-fn ch))
-     ch)))
+  [log]
+  (let [to-save (log->db-json log)
+        save (partial save-in-collection to-save)]
+    (-> @logs-collection
+        (p/then save)
+        utils/promise->chan)))
+
+
+(defn save-logs
+  [logs]
+  (let [to-save (logs->db-json logs)]
+    (-> @logs-collection
+        (p/chain initializeOrderedBulkOp
+                 (fn [batch]
+                   (doseq [x to-save]
+                     (save-in-batch x batch))
+                   batch))
+        (p/then #(.execute %))
+        utils/promise->chan)))
+
 
 (defn parse-events [raw-events decoder]
   (map #(-> %
             utils/transit->clj
             decoder)
        raw-events))
-
+                                        ;TODO: dopisz getery
+                                        ;TODO: wywal core.async gdze sie tylko da
 (defn get-log
-  "get log by `key` (any key) and return"
-  [key decoder]
-  (let [ch (chan)]
-    (go
-      (.zrange @conn key 0 -1 (utils/callback-chan-fn ch))
-      (-> (<! ch)
-          :data
-          (parse-events decoder)))))
+  ([decoder signature]
+   (utils/promise->chan (.find @db (clj->js {:selector {:signature signature}
+                                             :limit   10000}))))
+  ([decoder address signature]
+   (utils/promise->chan (.find @db (clj->js {:selector {:signature signature
+                                                        :address   address}
+                                             :limit   10000})))))

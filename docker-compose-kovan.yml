@@ -8,12 +8,14 @@ services:
     links:
       - kovan
       - redis
+      - couchdb
     ports:
       - "8000:8000"
     environment:
       - RPC_URL=http://kovan:8545
       - PORT=8000
-      - CHUNK_SIZE=1000
+      - CHUNK_SIZE=100000
+      - COUCHDB_URL=http://admin:password@couchdb:5984
       - REDIS_URL=redis://redis:6379/0
 
   kovan:
@@ -29,20 +31,18 @@ services:
       - "8546:8546"
     command: --chain kovan --unsafe-expose --fat-db on ui
 
+  couchdb:
+    image: couchdb:2.1.1
+    container_name: couchdb-kovan
+    ports:
+      - 5984:5984
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=password
+
   redis:
     container_name: redis-kovan
     image: redis:4-alpine
-
-  redis-commander:
-    container_name: redis-commander-kovan
-    image: rediscommander/redis-commander:latest
-    links:
-      - redis
-    environment:
-      - REDIS_HOSTS=redis
-    ports:
-      - 8081:8081
-
 
 volumes:
   chain:

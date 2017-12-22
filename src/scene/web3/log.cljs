@@ -41,7 +41,7 @@
 
 (defn create-log-getter
   "create log getter geting block for givent `ranges` vector
-  and put them on `logs-ch` chan"
+  and put them on `logs-ch` chan as vectors of logs"
   [web3 to-block-ch logs-ch chunk-size]
   (let [result-ch (chan)
         running   (atom true)]
@@ -52,12 +52,8 @@
           (-> (.filter (.. web3 -eth)
                        (clj->js range))
               (.get (utils/callback-chan-fn result-ch)))
-
           (info "getting logs for range" range)
-          (doseq [log   (:data (<! result-ch))
-                  :when @running]  ;TODO: error handlig (ignore all errors for now)
-            (>! logs-ch {:data log
-                         :erro nil})))))
+          (>! logs-ch (<! result-ch)))))
     {:stop #(reset! running false)}))
 
 

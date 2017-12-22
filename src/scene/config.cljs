@@ -7,8 +7,8 @@
 (defn parse-number [s]
   (.parseInt js/Number s))
 
-(def redis-url (get @env :redis-url "redis://localhost:6379/0"))
-(def couchdb-url (get @env :couchdb-url "http://localhost:5984"))
+(def mongo-url (get @env :mongo-url "mongodb://localhost:27017/scene"))
+(def db-name (get @env :db-name "scene"))
 (def rpc-url (get @env :rpc-url "http://localhost:8545"))
 (def chunk-size (parse-number (get @env :chunk-size 100000)))
 (def key-prefix (get @env :key-prefix "scene"))

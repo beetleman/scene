@@ -4,7 +4,7 @@ services:
   repl:
     links:
       - testrpc
-      - redis
+      - mongo
     depends_on:
       - truffle
     extends:
@@ -25,7 +25,7 @@ services:
   test-watch:
     links:
       - testrpc
-      - redis
+      - mongo
     depends_on:
       - truffle
     extends:
@@ -38,7 +38,7 @@ services:
   test:
     links:
       - testrpc
-      - redis
+      - mongo
     depends_on:
       - truffle
     extends:
@@ -62,19 +62,8 @@ services:
     links:
       - testrpc
 
-  redis:
-    image: redis:4-alpine
-
-  redis:
-    image: redis:4-alpine
-
-  couchdb:
-    image: couchdb:2.1.1
-    ports:
-      - 5984:5984
-    environment:
-      - COUCHDB_USER=admin
-      - COUCHDB_PASSWORD=password
+  mongo:
+    image: mongo:3.6.0
 
 volumes:
   m2-repo:
