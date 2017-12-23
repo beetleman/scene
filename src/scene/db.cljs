@@ -78,7 +78,7 @@
   (-> batch
       (.find #js {:_id _id})
       (.upsert)
-      (.replaceOne to-save)))
+      (.replaceOne (clj->js to-save))))
 
 (defn save-log
   [log]
@@ -107,13 +107,16 @@
             utils/transit->clj
             decoder)
        raw-events))
-                                        ;TODO: dopisz getery
-                                        ;TODO: wywal core.async gdze sie tylko da
+                                        ;TODO: cursor -> channel -> stream
 (defn get-log
   ([decoder signature]
-   (utils/promise->chan (.find @db (clj->js {:selector {:signature signature}
-                                             :limit   10000}))))
+   (-> @logs-collection
+       (p/chain #(.find % #js {:signature signature})
+                #(.toArray %))
+       utils/promise->chan))
   ([decoder address signature]
-   (utils/promise->chan (.find @db (clj->js {:selector {:signature signature
-                                                        :address   address}
-                                             :limit   10000})))))
+   (-> @logs-collection
+       (p/chain #(.find % #js {:signature signature
+                               :address   address})
+                #(.toArray %))
+       (utils/promise->chan))))
