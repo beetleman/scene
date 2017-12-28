@@ -15,70 +15,62 @@
 
 (defstate db
   :start (-> @conn
-             (p/then #(.db % config/db-name))))
+             (p/chain #(.db % config/db-name)
+                      (utils/logger-fn "`db` created"))))
 
 (defstate logs-collection
-  :start (p/then @db #(.collection % "logs")))
+  :start (p/chain @db
+                  #(.collection % "logs")
+                  (utils/logger-fn "`logs` collection created")))
 
-(defn redis-key
-  "produce key with prefix"
-  [s]
-  (str config/key-prefix ":" s))
 
-(defn topic-key [t]
-  (redis-key (str "topic:" t)))
-
-(defn address-key [a t]
-  (str (topic-key t) ":address:" a))
-
-(defn get-topic [log]
-  (->> log
-       :topics
-       first))
+(defn get-signature [log]
+  (aget log "topics" 0))
 
 (defn get-address [log]
-  (:address log))
+  (aget log "address"))
 
-(defn log->address-key
-  "produce redis key for given `log` map, based on contract address"
-  [log]
-  (address-key (get-address log) (get-topic log)))
+(defn get-id [log]
+  (aget log "_id"))
 
-(defn log->topic-key
-  "produce redis jey for given `log` map, based on topic"
-  [log]
-  (topic-key (get-topic log)))
 
 (defn create-id
   "create `_id` for log"
   [log]
   (clojure.string/join ":" ((juxt :blockNumber :logIndex) log)))
 
+
 (defn log->db-json
-  "conver log to json accepted by couchdb, adds id to document"
+  "convert log to json accepted by mongodb, adds id to document"
   [log]
-  (assoc log :_id (create-id log) :signature (-> log :topics first)))
+  (.assign js/Object
+           # js {}
+           logs
+           #js {"_id"       (create-id log)
+                "signature" (get-signature log)}))
 
 (defn logs->db-json
+  "convert array with logs to json accepted by mongodb, adds id to document"
   [logs]
-  (map log->db-json logs))
+  (.map logs log->db-json))
 
-(defn initializeOrderedBulkOp [collection]
+
+(defn- initializeOrderedBulkOp [collection]
   (.initializeOrderedBulkOp collection))
 
 (defn- save-in-collection
-  [{:keys [_id] :as to-save} collection]
+  [to-save collection]
   (.replaceOne collection
-           #js {:_id _id}
-           (clj->js to-save)
-           #js {:upset true}))
+               #js {:_id (get-id log)}
+               to-save
+               #js {:upset true}))
 
 (defn- save-in-batch
-  [{:keys [_id] :as to-save} batch]
+  [to-save batch]
   (-> batch
-      (.find #js {:_id _id})
+      (.find #js {:_id (get-id to-save)})
       (.upsert)
-      (.replaceOne (clj->js to-save))))
+      (.replaceOne to-save)))
 
 (defn save-log
   [log]
@@ -95,8 +87,7 @@
     (-> @logs-collection
         (p/chain initializeOrderedBulkOp
                  (fn [batch]
-                   (doseq [x to-save]
-                     (save-in-batch x batch))
+                   (.forEach to-save #(save-in-batch % batch))
                    batch))
         (p/then #(.execute %))
         utils/promise->chan)))
@@ -108,6 +99,7 @@
             decoder)
        raw-events))
                                         ;TODO: cursor -> channel -> stream
+                                        ;TODO: remove not necesary all clj->js
 (defn get-log
   ([decoder signature]
    (-> @logs-collection

@@ -37,7 +37,7 @@
   "create block ranges for `web3.eth.get`"
   [from to step]
   (map #(hash-map :fromBlock (first %) :toBlock (last %))
-       (partition-all (inc step) (range from to))))
+       (partition-all step (range from (inc to)))))
 
 (defn create-log-getter
   "create log getter geting block for givent `ranges` vector
@@ -46,7 +46,8 @@
   (let [result-ch (chan)
         running   (atom true)]
     (go
-      (let [ranges (create-block-ranges 0 (<! to-block-ch) chunk-size)]
+      ;; (let [ranges (create-block-ranges 0 (<! to-block-ch) chunk-size)]
+      (let [ranges (create-block-ranges 0  5154508 chunk-size)]
         (doseq [range ranges
                 :when @running]
           (-> (.filter (.. web3 -eth)

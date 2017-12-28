@@ -11,8 +11,8 @@
 (defn callback->clj
   "convert data from node style callback function to clojure"
   [error data]
-  {:data (js->clj data :keywordize-keys true)
-   :error (js->clj error :keywordize-keys true)})
+  {:data data
+   :error error})
 
 
 (defn callback-chan-fn
@@ -58,5 +58,10 @@
 (defn logger
   "logger for `->` and `->>` macros"
   [x]
-  (js/console.log x)
+  (info x)
   x)
+
+(defn logger-fn [desc]
+  (fn [data]
+    (info desc)
+    data))
