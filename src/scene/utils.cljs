@@ -11,7 +11,6 @@
   {:data data
    :error error})
 
-
 (defn callback-chan-fn
   "return node style callback function"
   [ch]
@@ -30,27 +29,17 @@
                   (put! ch {:error (js->clj err :keywordize-keys true)}))))
     ch))
 
-(defn callback-chan-seq-fn
-  "return node style callback function for lists of items"
-  [ch]
-  (fn [err data]
-    (if err
-      (do
-        (error (js->clj err))
-        (put! ch (callback->clj err nil)))
-      (onto-chan ch (map #(callback->clj nil %) data) false))))
-
 
 (defn clj->json
   "convert clojure object to json"
   [ds]
   (.stringify js/JSON (clj->js ds)))
 
-
 (defn json->clj
   "convert json to clojure object"
   [s]
   (js->clj (.parse js/JSON s) :keywordize-keys true))
+
 
 (defn logger
   "logger for `->` and `->>` macros"

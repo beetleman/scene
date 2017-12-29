@@ -20,7 +20,9 @@
 
 (t/deftest test-create-block-ranges
   (t/is (= (sut/create-block-ranges 0 10 2)
-           '({:fromBlock 0 :toBlock 2}
-             {:fromBlock 3 :toBlock 5}
-             {:fromBlock 6 :toBlock 8}
-             {:fromBlock 9 :toBlock 9}))))
+           '({:fromBlock 0 :toBlock 1}
+             {:fromBlock 2 :toBlock 3}
+             {:fromBlock 4 :toBlock 5}
+             {:fromBlock 6 :toBlock 7}
+             {:fromBlock 8 :toBlock 9}
+             {:fromBlock 10 :toBlock 10}))))
