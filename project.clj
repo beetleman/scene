@@ -13,7 +13,6 @@
                  [org.clojure/clojurescript "1.9.946"]
                  [org.clojure/core.async "0.3.443"]
                  [funcool/promesa "1.9.0"]
-                 [com.cognitect/transit-cljs "0.8.243"]
                  ;; for cider repl
                  [org.clojure/tools.nrepl "0.2.12" :exclusions [org.clojure/clojure]]]
   :min-lein-version "2.0.0"
@@ -27,8 +26,8 @@
             [refactor-nrepl "2.4.0-SNAPSHOT"]
             [cider/cider-nrepl "0.16.0-SNAPSHOT"]]
   :npm {:dependencies       [[source-map-support "0.4.6"]
-                             [web3 "0.20.2"]
-                             [mongodb "3.0.0-rc0"]]
+                             [web3 "0.20.3"]
+                             [mongodb "3.0.1"]]
         :write-package-json true}
   :source-paths ["src" "target/classes"]
   :clean-targets ["target"]

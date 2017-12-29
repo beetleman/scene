@@ -16,12 +16,12 @@
 (defstate db
   :start (-> @conn
              (p/chain #(.db % config/db-name)
-                      (utils/logger-fn "`db` created"))))
+                      (utils/logger-fn "`db` connection ready"))))
 
 (defstate logs-collection
   :start (p/chain @db
                   #(.collection % "logs")
-                  (utils/logger-fn "`logs` collection created")))
+                  (utils/logger-fn "`logs` collection ready")))
 
 
 (defn get-signature [log]
@@ -45,7 +45,7 @@
   [log]
   (.assign js/Object
            # js {}
-           logs
+           log
            #js {"_id"       (create-id log)
                 "signature" (get-signature log)}))
 
@@ -61,7 +61,7 @@
 (defn- save-in-collection
   [to-save collection]
   (.replaceOne collection
-               #js {:_id (get-id log)}
+               #js {:_id (get-id to-save)}
                to-save
                #js {:upset true}))
 
@@ -93,22 +93,23 @@
         utils/promise->chan)))
 
 
-(defn parse-events [raw-events decoder]
-  (map #(-> %
-            utils/transit->clj
-            decoder)
-       raw-events))
+(defn parse-events
+  [raw-events decoder]
+  (map decoder raw-events))
                                         ;TODO: cursor -> channel -> stream
-                                        ;TODO: remove not necesary all clj->js
-(defn get-log
-  ([decoder signature]
-   (-> @logs-collection
-       (p/chain #(.find % #js {:signature signature})
-                #(.toArray %))
+
+(defn- get-logs*
+  [decoder filter]
+  (-> @logs-collection
+      (p/chain #(.find % (clj->js filter))
+               #(.limit % 1000)
+               #(.toArray %)
+               #(parse-events % decoder))
        utils/promise->chan))
+
+(defn get-logs
+  ([decoder signature]
+   (get-logs* decoder {:signature signature}))
   ([decoder address signature]
-   (-> @logs-collection
-       (p/chain #(.find % #js {:signature signature
-                               :address   address})
-                #(.toArray %))
-       (utils/promise->chan))))
+   (get-logs* decoder {:signature signature
+                       :address    address})))

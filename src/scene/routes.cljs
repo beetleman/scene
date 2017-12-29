@@ -24,13 +24,14 @@
         {:keys [address]} (:params req)
         decoder           (web3event/create-decoder abi)
         getter (if address
-                 (partial db/get-log decoder address)
-                 (partial db/get-log decoder))]
+                 (partial db/get-logs decoder address)
+                 (partial db/get-logs decoder))]
     (go
-      (r/ok {:data (-> abi
-                       web3event/abi->signature
-                       getter
-                       <!)}))))
+      (r/ok (-> abi
+                web3event/abi->signature
+                getter
+                <!
+                :data)))))
 
 (def routes
   ["/"
