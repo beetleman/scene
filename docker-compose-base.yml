@@ -1,4 +1,4 @@
-version: "2"
+version: "2.2"
 
 services:
   build-base:
@@ -17,7 +17,6 @@ services:
       - "9229:9229"
     environment:
       - RPC_URL=http://testrpc:8545
-      - REDIS_URL=redis://redis:6379/0
       - MONGO_URL=mongodb://mongo:27017/dev
       - DB_NAME=scene
 
@@ -26,6 +25,5 @@ services:
       service: build-base
     environment:
       - RPC_URL=http://testrpc:8545
-      - REDIS_URL=redis://redis:6379/0
       - MONGO_URL=mongodb://mongo:27017/test
       - DB_NAME=scene_test

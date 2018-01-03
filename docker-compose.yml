@@ -1,4 +1,4 @@
-version: "2"
+version: "2.2"
 
 services:
   repl:
@@ -7,6 +7,17 @@ services:
       - mongo
     depends_on:
       - truffle
+    extends:
+      file: ./docker-compose-base.yml
+      service: dev-base
+    volumes:
+      - m2-repo:/root/.m2
+    command: repl
+
+  repl-kovan:
+    links:
+      - kovan:testrpc
+      - mongo
     extends:
       file: ./docker-compose-base.yml
       service: dev-base
@@ -51,6 +62,18 @@ services:
   testrpc:
     image: beetleman/docker-eth-env:0.0.3
 
+  kovan:
+    image: parity/parity:v1.7.11
+    container_name: parity-kovan
+    cpus: 0.5
+    volumes:
+      - chain:/root/.local/share/io.parity.ethereum
+    ports:
+      - "8180:8180"
+      - "30303:30303"
+      - "8546:8546"
+    command: --chain kovan --unsafe-expose --no-warp --tracing on ui
+
   truffle:
     build:
       context: .
@@ -67,3 +90,4 @@ services:
 
 volumes:
   m2-repo:
+  chain:
