@@ -24,7 +24,7 @@
             [lein-cljsbuild "1.1.7"]
             ;; for cider repl
             [refactor-nrepl "2.4.0-SNAPSHOT"]
-            [cider/cider-nrepl "0.16.0-SNAPSHOT"]]
+            [cider/cider-nrepl "0.17.0-SNAPSHOT"]]
   :npm {:dependencies       [[source-map-support "0.4.6"]
                              [web3 "0.20.3"]
                              [mongodb "3.0.1"]]
