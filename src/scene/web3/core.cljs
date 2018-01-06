@@ -34,14 +34,11 @@
 (defn start-log-watcher
   "start watching ethereum log from latest block"
   []
-  (let [watch-ch      (chan)
-        mult-ch       (mult watch-ch)
-        last-block-ch (chan (sliding-buffer 1))
-        watcher       (log/create-watcher web3 watch-ch "latest")]
-    (tap mult-ch last-block-ch)
-    {:mult-ch              mult-ch
-     :last-block-number-ch (log/last-block-number last-block-ch)
-     :stop                 #(.stopWatching watcher)}))
+  (let [watch-ch (chan)
+        mult-ch  (mult watch-ch)
+        watcher  (log/create-watcher web3 watch-ch "latest")]
+    {:mult-ch mult-ch
+     :stop    #(.stopWatching watcher)}))
 
 (defstate log-watcher
   :start (start-log-watcher)
@@ -49,7 +46,7 @@
 
 
 (defstate log-getter
-  :start (start-log-getter (:last-block-number-ch @log-watcher))
+  :start (start-log-getter (log/current-block-number web3))
   :stop ((:stop @log-getter)))
 
 

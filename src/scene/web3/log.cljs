@@ -24,14 +24,13 @@
       (.watch (utils/callback-chan-fn ch))))
 
 
-(defn last-block-number
-  "return chan with last block number from `blocks-ch`"
-  [blocks-ch]
-  (let [block-number-ch (chan (sliding-buffer 1)
-                              (map #(get-in % [:data :blockNumber])))]
-    (pipe blocks-ch block-number-ch)
-    block-number-ch))
-
+(defn current-block-number
+  "return chan with last block number"
+  [web3]
+  (let [ch (chan 1)]
+    (.getBlockNumber (.-eth web3)
+                     (utils/callback-chan-fn ch))
+    ch))
 
 (defn create-block-ranges
   "create block ranges for `web3.eth.get`"
@@ -46,8 +45,12 @@
   (let [result-ch (chan)
         running   (atom true)]
     (go
-      ;; (let [ranges (create-block-ranges 0 (<! to-block-ch) chunk-size)]
-      (let [ranges (create-block-ranges 0  5154508 chunk-size)]
+      (print (<! (current-block-number web3)))
+      (let [ranges (create-block-ranges 0
+                                        (-> to-block-ch
+                                            <!
+                                            :data)
+                                        chunk-size)]
         (doseq [range ranges
                 :when @running]
           (-> (.filter (.. web3 -eth)
@@ -66,8 +69,8 @@
    (let [running (atom true)
          logging (if logging?
                    (fn [log]
-                     (info (str "handling log fron block number: " (:blockNumber log))))
-                   identity)]
+                     (info (str "handling log fron block number: " (aget log "blockNumber"))))
+                   (constantly nil))]
      (go-loop []
        (let [log (-> ch
                      <!
