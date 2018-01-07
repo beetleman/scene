@@ -30,8 +30,7 @@
       (r/ok (-> abi
                 web3event/abi->signature
                 getter
-                <!
-                :data)))))
+                <!)))))
 
 (def routes
   ["/"
