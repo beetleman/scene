@@ -2,7 +2,8 @@
   (:require [mount.core :refer [defstate]]
             [promesa.core :as p]
             [scene.utils :as utils]
-            [scene.config :as config]))
+            [scene.config :as config]
+            [scene.interop :as interop]))
 
 (def MongoClient (.-MongoClient (js/require "mongodb")))
 
@@ -21,33 +22,27 @@
 (defstate logs-collection
   :start (p/chain @db
                   #(.collection % "logs")
+                  (fn [coll]
+                    (.createIndex coll #js {:_id 1})
+                    (.createIndex coll #js {:signature 1})
+                    (.createIndex coll #js {:signature 1 :address 1})
+                    coll)
                   (utils/logger-fn "`logs` collection ready")))
-
-
-(defn get-signature [log]
-  (aget log "topics" 0))
-
-(defn get-address [log]
-  (aget log "address"))
-
-(defn get-id [log]
-  (aget log "_id"))
 
 
 (defn create-id
   "create `_id` for log"
   [log]
-  (clojure.string/join ":" ((juxt :blockNumber :logIndex) log)))
-
+  (clojure.string/join ":"
+                       ((juxt interop/get-block-number
+                              interop/get-log-index) log)))
 
 (defn log->db-json
   "convert log to json accepted by mongodb, adds id to document"
   [log]
-  (.assign js/Object
-           # js {}
-           log
-           #js {"_id"       (create-id log)
-                "signature" (get-signature log)}))
+  (interop/js-merge log
+                    #js {"_id"       (create-id log)
+                         "signature" (interop/get-topic log 0)}))
 
 (defn logs->db-json
   "convert array with logs to json accepted by mongodb, adds id to document"
@@ -61,14 +56,14 @@
 (defn- save-in-collection
   [to-save collection]
   (.replaceOne collection
-               #js {:_id (get-id to-save)}
+               #js {:_id (interop/get-id to-save)}
                to-save
                #js {:upset true}))
 
 (defn- save-in-batch
   [to-save batch]
   (-> batch
-      (.find #js {:_id (get-id to-save)})
+      (.find #js {:_id (interop/get-id to-save)})
       (.upsert)
       (.replaceOne to-save)))
 
@@ -95,7 +90,7 @@
 
 (defn parse-events
   [raw-events decoder]
-  (map decoder raw-events))
+  (.map raw-events decoder))
                                         ;TODO: cursor -> channel -> stream
 
 (defn- get-logs*
