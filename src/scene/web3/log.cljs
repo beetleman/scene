@@ -6,23 +6,17 @@
             [scene.utils :as utils])
   (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
 
+(defprotocol Stoppable
+  (stop [this] "stop it"))
 
-(defn watch-callback-fn [ch last-block]
-  (fn [error data]
-    (let [r (utils/callback->clj error data)]
-      (put! ch r)
-      (when-not error
-        (->> r :data :blockNumber (reset! last-block))))))
+(defprotocol DataProvider
+  (data [this] "provide chan with data"))
 
-
-(defn create-watcher
-  "create log watcher from `from-block` and put all arived dat into `ch`"
-  [web3 ch from-block]
-  (-> (.filter (.. web3 -eth)
-               #js{:fromBlock from-block}
-               (fn [err] (when err (error err))))
-      (.watch (utils/callback-chan-fn ch))))
-
+(defrecord DataGetter [data-ch poison-ch]
+  Stoppable
+  (stop [_] (put! poison-ch :stop))
+  DataProvider
+  (data [_] data-ch))
 
 (defn current-block-number
   "return chan with last block number"
@@ -38,27 +32,45 @@
   (map #(hash-map :fromBlock (first %) :toBlock (last %))
        (partition-all step (range from (inc to)))))
 
+(defn create-block-ranges-getter
+  "create 'Stoppable' 'DataProvider' with block ranges
+  from `from` to 'latest' with max `step`"
+  [web3 from step]
+  (let [ch           (chan 1)
+        block-number #(go (-> web3
+                              current-block-number
+                              <!
+                              :data))
+        poison-ch    (chan 1)]
+    (go-loop [from from
+              [_ c] [nil nil]]
+      ;; stream ranges to chan
+      (when-let [to (and (not= c poison-ch)
+                         (<! (block-number)))]
+        (when (<= from to)
+          (<! (a/onto-chan ch
+                           (create-block-ranges from
+                                                to
+                                                step)
+                           false)))
+        (recur (inc to) (a/alts! [(a/timeout 100) poison-ch]))))
+    (->DataGetter ch poison-ch)))
+
 (defn create-log-getter
   "create log getter geting block for givent `ranges` vector
   and put them on `logs-ch` chan as vectors of logs"
-  [web3 to-block-ch logs-ch chunk-size]
+  [web3 ranges-ch logs-ch]
   (let [result-ch (chan)
-        running   (atom true)]
-    (go
-      (print (<! (current-block-number web3)))
-      (let [ranges (create-block-ranges 0
-                                        (-> to-block-ch
-                                            <!
-                                            :data)
-                                        chunk-size)]
-        (doseq [range ranges
-                :when @running]
-          (-> (.filter (.. web3 -eth)
-                       (clj->js range))
-              (.get (utils/callback-chan-fn result-ch)))
-          (info "getting logs for range" range)
-          (>! logs-ch (<! result-ch)))))
-    {:stop #(reset! running false)}))
+        poison-ch (chan 1)]
+    (go-loop [[v c] (a/alts! [ranges-ch poison-ch])]
+      (when-let [range (and (not= c poison-ch) v)]
+        (-> (.filter (.. web3 -eth)
+                     (clj->js range))
+            (.get (utils/callback-chan-fn result-ch)))
+        (info "getting logs for range" range)
+        (>! logs-ch (<! result-ch))
+        (recur (a/alts! [ranges-ch poison-ch]))))
+    (->DataGetter logs-ch poison-ch)))
 
 
 (defn create-log-handler

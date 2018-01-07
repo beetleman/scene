@@ -23,40 +23,26 @@
    ch))
 
 (defn start-log-getter
-  "start log getter which gets logs from 0 to `to-block`"
-  [to-block-ch]
+  "start log getter which gets logs for ranges provided by `ranges-ch`"
+  [ranges-ch]
   (let [getter-ch (chan config/chunk-size)
         mult-ch   (mult getter-ch)]
-    (assoc (log/create-log-getter web3 to-block-ch getter-ch config/chunk-size)
+    (assoc (log/create-log-getter web3 ranges-ch getter-ch)
            :mult-ch
            mult-ch)))
 
-(defn start-log-watcher
-  "start watching ethereum log from latest block"
-  []
-  (let [watch-ch (chan)
-        mult-ch  (mult watch-ch)
-        watcher  (log/create-watcher web3 watch-ch "latest")]
-    {:mult-ch mult-ch
-     :stop    #(.stopWatching watcher)}))
-
-(defstate log-watcher
-  :start (start-log-watcher)
-  :stop ((:stop @log-watcher)))
+(defstate log-ranges-getter
+  :start (log/create-block-ranges-getter web3 0 config/chunk-size)
+  :stop (log/stop @log-ranges-getter))
 
 
 (defstate log-getter
-  :start (start-log-getter (log/current-block-number web3))
-  :stop ((:stop @log-getter)))
+  :start (start-log-getter (log/data @log-ranges-getter))
+  :stop (log/stop @log-getter))
 
-
-(defstate log-watcher-saver
-  :start (log/create-log-handler (get-chan @log-watcher)
-                                 db/save-log)
-  :stop ((:stop @log-watcher-saver)))
 
 (defstate log-getter-saver
   :start (log/create-log-handler (get-chan @log-getter)
                                  db/save-logs
                                  false)
-  :stop ((:stop @log-watcher-saver)))
+  :stop ((:stop @log-getter-saver)))
