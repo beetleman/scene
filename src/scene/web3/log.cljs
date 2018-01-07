@@ -58,9 +58,10 @@
 
 (defn create-log-getter
   "create log getter geting block for givent `ranges` vector
-  and put them on `logs-ch` chan as vectors of logs"
-  [web3 ranges-ch logs-ch]
-  (let [result-ch (chan)
+  and put then to `DataGetter` using `buffer`"
+  [web3 ranges-ch buffer]
+  (let [result-ch (chan 1)
+        logs-ch   (chan buffer)
         poison-ch (chan 1)]
     (go-loop [[v c] (a/alts! [ranges-ch poison-ch])]
       (when-let [range (and (not= c poison-ch) v)]
@@ -73,21 +74,13 @@
     (->DataGetter logs-ch poison-ch)))
 
 
-(defn create-log-handler
-  "read all logs from given `ch` channel and run `handler` function on them"
-  ([ch handler]
-   (create-log-handler ch handler true))
-  ([ch handler logging?]
-   (let [running (atom true)
-         logging (if logging?
-                   (fn [log]
-                     (info (str "handling log fron block number: " (aget log "blockNumber"))))
-                   (constantly nil))]
-     (go-loop []
-       (let [log (-> ch
-                     <!
-                     :data)]
-         (<! (handler log))
-         (logging log)
-         (when @running (recur))))
-     {:stop #(reset! running false)})))
+(defn create-data-handler
+  "pass all data from DataProvider `d` to `handler` function"
+  [provider handler]
+  (let [poison-ch (chan 1)]
+    (go-loop [[{d :data} c] (a/alts! [poison-ch (data provider)])]
+      (when-not (= c poison-ch)
+        (<! (handler d))
+        (recur (a/alts! [poison-ch (data provider)]))))
+    (reify Stoppable
+           (stop [_] (put! poison-ch :stop)))))

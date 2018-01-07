@@ -14,22 +14,11 @@
 (def httpProvider (Web3.providers.HttpProvider. config/rpc-url))
 (def web3 (Web3. httpProvider))
 
-(defn get-chan
-  "get chan from state with mutl chan"
-  ([s]
-   (get-chan s (chan)))
-  ([s ch]
-   (tap (:mult-ch s) ch)
-   ch))
-
 (defn start-log-getter
   "start log getter which gets logs for ranges provided by `ranges-ch`"
   [ranges-ch]
-  (let [getter-ch (chan config/chunk-size)
-        mult-ch   (mult getter-ch)]
-    (assoc (log/create-log-getter web3 ranges-ch getter-ch)
-           :mult-ch
-           mult-ch)))
+  (log/create-log-getter web3 ranges-ch config/chunk-size))
+
 
 (defstate log-ranges-getter
   :start (log/create-block-ranges-getter web3 0 config/chunk-size)
@@ -37,12 +26,12 @@
 
 
 (defstate log-getter
-  :start (start-log-getter (log/data @log-ranges-getter))
+  :start (-> (log/data @log-ranges-getter)
+             start-log-getter)
   :stop (log/stop @log-getter))
 
 
 (defstate log-getter-saver
-  :start (log/create-log-handler (get-chan @log-getter)
-                                 db/save-logs
-                                 false)
-  :stop ((:stop @log-getter-saver)))
+  :start (log/create-data-handler @log-getter
+                                  db/save-logs)
+  :stop (log/stop @log-getter-saver))
