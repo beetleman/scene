@@ -23,14 +23,17 @@
   (let [abi               (:body req)
         {:keys [address]} (:params req)
         decoder           (web3event/create-decoder abi)
-        getter (if address
-                 (partial db/get-logs decoder address)
-                 (partial db/get-logs decoder))]
+        getter            (if address
+                            (partial db/get-logs decoder address)
+                            (partial db/get-logs decoder))]
     (go
-      (r/ok (-> abi
-                web3event/abi->signature
-                getter
-                <!)))))
+      (let [e (-> abi
+                  web3event/abi->signature
+                  getter
+                  <!)]
+           (if (:data e)
+             (r/ok e)
+             (r/not-found e))))))
 
 (def routes
   ["/"
