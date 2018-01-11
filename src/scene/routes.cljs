@@ -1,10 +1,10 @@
 (ns scene.routes
   (:require [bidi.bidi :as bidi]
             [clojure.core.async :refer [<!]]
+            [clojure.spec.alpha :as s]
             [macchiato.util.response :as r]
             [scene.db :as db]
-            [scene.web3.event :as web3event]
-            [taoensso.timbre :refer-macros [info]])
+            [scene.web3.event :as web3event])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (defn health [req res raise]
@@ -13,25 +13,33 @@
 (defn not-found [req res raise]
   (r/not-found {:msg (str "`" (:uri req) "` was not found")}))
 
-(defn info-proxy [x]
-  (info x)
-  x)
+
+(defn parse-error [{problems :cljs.spec.alpha/problems}]
+  {:error (map (fn [{:keys [pred path]}]
+                    {:path path :is-not pred})
+                  problems)})
+
 
 (defn events [req res raise]
-  (let [abi               (:body req)
-        {:keys [address]} (:params req)
-        decoder           (web3event/create-decoder abi)
-        getter            (if address
-                            (partial db/get-logs decoder address)
-                            (partial db/get-logs decoder))]
-    (go
-      (let [e (-> abi
-                  web3event/abi->signature
-                  getter
-                  <!)]
-           (if (:data e)
-             (r/ok e)
-             (r/not-found e))))))
+  (let [{abi               :body
+         {:keys [address]} :params} req]
+    (if-let [validation-error (s/explain-data :scene.web3.event/event-abi abi)]
+      (-> validation-error
+          parse-error
+          r/bad-request)
+      (go
+        (let [decoder (web3event/create-decoder abi)
+              getter  (if address
+                        (partial db/get-logs decoder address)
+                        (partial db/get-logs decoder))
+              logs  (-> abi
+                        web3event/abi->signature
+                        getter
+                        <!)]
+          ((if (:data logs)
+             r/ok
+             r/bad-request) logs))))))
+
 
 (def routes
   ["/"

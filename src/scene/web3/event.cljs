@@ -45,11 +45,12 @@
                                     #(> (count %) 0)))
 (s/def ::anonymous boolean?)
 (s/def ::name ::valid-solidity-name)
-(s/def ::type ::valid-solidity-name)
+(s/def ::type #{"event"})
+(s/def :input/type :scene.spec/solidity-types)
 (s/def ::indexed boolean?)
 (s/def ::input (s/keys :req-un [::name
                                 ::indexed
-                                ::type]))
+                                :input/type]))
 (s/def ::inputs (s/coll-of ::input))
 (s/def ::event-abi (s/keys :req-un [::anonymous
                                     ::inputs
