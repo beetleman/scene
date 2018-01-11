@@ -1,9 +1,9 @@
 (ns scene.db
   (:require [mount.core :refer [defstate]]
             [promesa.core :as p]
-            [scene.utils :as utils]
             [scene.config :as config]
-            [scene.interop :as interop]))
+            [scene.interop :as interop]
+            [scene.utils :as utils]))
 
 (def MongoClient (.-MongoClient (js/require "mongodb")))
 

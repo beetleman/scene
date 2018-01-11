@@ -1,12 +1,10 @@
 (ns scene.routes
   (:require [bidi.bidi :as bidi]
-            [hiccups.runtime]
-            [macchiato.util.response :as r]
-            [taoensso.timbre :refer-macros [info]]
             [clojure.core.async :refer [<!]]
+            [macchiato.util.response :as r]
             [scene.db :as db]
-            [scene.web3.core :as web3]
-            [scene.web3.event :as web3event])
+            [scene.web3.event :as web3event]
+            [taoensso.timbre :refer-macros [info]])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (defn health [req res raise]

@@ -1,12 +1,10 @@
 (ns scene.core
-  (:require
-    [scene.config :refer [env]]
-    [scene.middleware :refer [wrap-defaults]]
-    [scene.routes :refer [router]]
-    [macchiato.server :as http]
-    [macchiato.middleware.session.memory :as mem]
-    [mount.core :as mount :refer [defstate]]
-    [taoensso.timbre :refer-macros [log trace debug info warn error fatal]]))
+  (:require [macchiato.server :as http]
+            [mount.core :as mount]
+            [scene.config :refer [env]]
+            [scene.middleware :refer [wrap-defaults]]
+            [scene.routes :refer [router]]
+            [taoensso.timbre :refer-macros [info]]))
 
 (defn server []
   (mount/start)

@@ -1,8 +1,8 @@
 (ns scene.middleware
   (:require [clojure.core.async :refer [<!]]
             [clojure.core.async.impl.protocols :refer [Channel]]
-            [macchiato.middleware.restful-format :as rf]
-            [macchiato.middleware.defaults :as defaults])
+            [macchiato.middleware.defaults :as defaults]
+            [macchiato.middleware.restful-format :as rf])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (defn channel?

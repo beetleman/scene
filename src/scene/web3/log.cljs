@@ -1,11 +1,9 @@
 (ns scene.web3.log
-  (:require [clojure.core.async
-             :as a
-             :refer [put! >! <! chan sliding-buffer pipe]]
+  (:require [clojure.core.async :as a :refer [<! >! chan put!]]
             [clojure.spec.alpha :as s]
-            [taoensso.timbre :refer-macros [info error]]
-            [scene.utils :as utils])
-  (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
+            [scene.utils :as utils]
+            [taoensso.timbre :refer-macros [info]])
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
 
 (defprotocol Stoppable
   (stop [this] "stop it"))

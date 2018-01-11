@@ -1,8 +1,6 @@
 (ns scene.utils
-  (:require [clojure.core.async :refer [<! chan put! onto-chan]]
-            [taoensso.timbre :refer-macros [error info]])
-  (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
-
+  (:require [clojure.core.async :refer [chan put!]]
+            [taoensso.timbre :refer-macros [error info]]))
 
 (defn callback->clj
   "convert data from node style callback function to clojure"

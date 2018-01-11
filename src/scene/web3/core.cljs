@@ -1,13 +1,8 @@
 (ns scene.web3.core
   (:require [mount.core :refer [defstate]]
-            [taoensso.timbre :refer-macros [info]]
-            [clojure.core.async
-             :as a
-             :refer [put! >! <! chan sliding-buffer close! alts! timeout mult tap]]
             [scene.config :as config]
             [scene.db :as db]
-            [scene.web3.log :as log])
-    (:require-macros [cljs.core.async.macros :refer [go-loop]]))
+            [scene.web3.log :as log]))
 
 (def Web3 (js/require "web3"))
 
