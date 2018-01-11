@@ -2,6 +2,7 @@
   (:require [clojure.core.async
              :as a
              :refer [put! >! <! chan sliding-buffer pipe]]
+            [clojure.spec.alpha :as s]
             [taoensso.timbre :refer-macros [info error]]
             [scene.utils :as utils])
   (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
@@ -31,6 +32,18 @@
   [from to step]
   (map #(hash-map :fromBlock (first %) :toBlock (last %))
        (partition-all step (range from (inc to)))))
+
+(s/def ::fromBlock pos-int?)
+(s/def ::toBlock pos-int?)
+(s/fdef create-block-ranges
+        :args (s/and (s/cat :from ::fromBlock
+                            :to ::toBlock
+                            :step pos-int?)
+                     (fn [{from :from to :to}] (<= from to)))
+        :ret (s/coll-of (s/keys :req-un [::fromBlock ::toBlock]))
+        :fn #(>= (- (-> % :args :to inc) (-> % :args :from))
+                 (-> % :ret count)))
+
 
 (defn create-block-ranges-getter
   "create 'Stoppable' 'DataProvider' with block ranges

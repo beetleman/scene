@@ -4,18 +4,19 @@
   (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
 
 
-
 (defn callback->clj
   "convert data from node style callback function to clojure"
   [error data]
   {:data data
    :error error})
 
+
 (defn callback-chan-fn
   "return node style callback function"
   [ch]
   (fn [error data]
     (put! ch (callback->clj error data))))
+
 
 (defn promise->chan
   "return channel with result from promise"
@@ -35,11 +36,6 @@
   [ds]
   (.stringify js/JSON (clj->js ds)))
 
-(defn json->clj
-  "convert json to clojure object"
-  [s]
-  (js->clj (.parse js/JSON s) :keywordize-keys true))
-
 
 (defn logger
   "logger for `->` and `->>` macros"
@@ -47,7 +43,16 @@
   (info x)
   x)
 
+
 (defn logger-fn [desc]
   (fn [data]
     (info desc)
     data))
+
+
+(defn int->hex
+  ([n]
+   (int->hex n 0))
+  ([n pad-to]
+   (-> (.toString n 16)
+       (.padStart pad-to "0"))))
