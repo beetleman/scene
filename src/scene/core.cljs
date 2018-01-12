@@ -4,6 +4,7 @@
             [scene.config :refer [env]]
             [scene.middleware :refer [wrap-defaults]]
             [scene.routes :refer [router]]
+            [scene.web3.core]
             [taoensso.timbre :refer-macros [info]]))
 
 (defn server []

@@ -6,7 +6,9 @@ services:
       context: .
       dockerfile: ./development/Dockerfile.dev
     volumes:
-      - .:/app
+      - ./:$PWD
+    working_dir: $PWD
+    entrypoint: ./development/run-dev.sh
 
   dev-base:
     extends:

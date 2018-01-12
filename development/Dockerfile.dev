@@ -18,9 +18,3 @@ RUN apt-get update &&\
 
 EXPOSE 3000
 EXPOSE 7000
-
-RUN mkdir -p /app
-ADD . /app
-WORKDIR /app
-
-ENTRYPOINT ["./development/run-dev.sh"]

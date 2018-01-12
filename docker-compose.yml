@@ -10,8 +10,6 @@ services:
     extends:
       file: ./docker-compose-base.yml
       service: dev-base
-    volumes:
-      - m2-repo:/root/.m2
     command: repl
 
   repl-kovan:
@@ -21,16 +19,12 @@ services:
     extends:
       file: ./docker-compose-base.yml
       service: dev-base
-    volumes:
-      - m2-repo:/root/.m2
     command: repl
 
   release:
     extends:
       file: ./docker-compose-base.yml
       service: build-base
-    volumes:
-      - m2-repo:/root/.m2
     command: release
 
   test-watch:
@@ -42,8 +36,6 @@ services:
     extends:
       file: ./docker-compose-base.yml
       service: test-base
-    volumes:
-      - m2-repo:/root/.m2
     command: lein test-watch
 
   test:
@@ -55,8 +47,6 @@ services:
     extends:
       file: ./docker-compose-base.yml
       service: test-base
-    volumes:
-      - m2-repo:/root/.m2
     command: lein test
 
   testrpc:
@@ -92,5 +82,4 @@ services:
     image: mongo:3.6.0
 
 volumes:
-  m2-repo:
   chain:

@@ -18,3 +18,4 @@ pom.xml.asc
 package-lock.json
 package.json
 /bc-data
+/.m2
