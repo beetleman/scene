@@ -5,16 +5,16 @@
             [taoensso.timbre :refer-macros [info]])
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
 
-(defprotocol Stoppable
+(defprotocol IStoppable
   (stop [this] "stop it"))
 
-(defprotocol DataProvider
+(defprotocol IDataProvider
   (data [this] "provide chan with data"))
 
 (defrecord DataGetter [data-ch poison-ch]
-  Stoppable
+  IStoppable
   (stop [_] (put! poison-ch :stop))
-  DataProvider
+  IDataProvider
   (data [_] data-ch))
 
 (defn current-block-number
@@ -44,7 +44,7 @@
 
 
 (defn create-block-ranges-getter
-  "create 'Stoppable' 'DataProvider' with block ranges
+  "create 'IStoppable' 'IDataProvider' with block ranges
   from `from` to 'latest' with max `step`"
   [web3 from step]
   (let [ch           (chan 1)
@@ -86,12 +86,12 @@
 
 
 (defn create-data-handler
-  "pass all data from DataProvider `d` to `handler` function"
+  "pass all data from IDataProvider `d` to `handler` function"
   [provider handler]
   (let [poison-ch (chan 1)]
     (go-loop [[{d :data} c] (a/alts! [poison-ch (data provider)])]
       (when-not (= c poison-ch)
         (<! (handler d))
         (recur (a/alts! [poison-ch (data provider)]))))
-    (reify Stoppable
+    (reify IStoppable
            (stop [_] (put! poison-ch :stop)))))
