@@ -12,10 +12,18 @@
     (.write node-server-response "[")
     (go-loop [part (<! ch)
               separator ""]
-      (if (nil? part)
+      (cond
+        (nil? part)
         (do
           (.write node-server-response "]")
           (.end node-server-response))
+
+        (contains? part :error)
+        (do
+          (.end node-server-response)
+          (raise (get part :error)))
+
+        :else
         (do
           (.write node-server-response separator)
           (.write node-server-response (utils/js->json part))
