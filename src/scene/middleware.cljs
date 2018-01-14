@@ -1,26 +1,27 @@
 (ns scene.middleware
-  (:require [clojure.core.async :refer [<!]]
-            [clojure.core.async.impl.protocols :refer [Channel]]
+  (:require [clojure.core.async.impl.channels :refer [ManyToManyChannel]]
+            [macchiato.http :as http]
             [macchiato.middleware.defaults :as defaults]
-            [macchiato.middleware.restful-format :as rf])
-  (:require-macros [cljs.core.async.macros :refer [go]]))
+            [macchiato.middleware.restful-format :as rf]
+            [scene.utils :as utils])
+  (:require-macros [cljs.core.async.macros :refer [go-loop]]))
 
-(defn channel?
-  "check if something is channel"
-  [x]
-  (satisfies? Channel x))
-
-(defn auto-res [handler]
-  (fn [req res raise]
-    (let [r (handler req res raise)]
-      (cond (iterable? r) (res r)
-            (channel? r) (go (-> r
-                                 <!
-                                 res))
-            :else r))))
+(extend-type ManyToManyChannel
+  http/IHTTPResponseWriter
+  (-write-response [ch node-server-response raise]
+    (.write node-server-response "[")
+    (go-loop [part (<! ch)
+              separator ""]
+      (if (nil? part)
+        (do
+          (.write node-server-response "]")
+          (.end node-server-response))
+        (do
+          (.write node-server-response separator)
+          (.write node-server-response (utils/js->json part))
+          (recur (<! ch) ","))))))
 
 (defn wrap-defaults [handler]
   (-> handler
-      auto-res
-      (rf/wrap-restful-format {:keywordize? true})
-      (defaults/wrap-defaults defaults/site-defaults)))
+      (defaults/wrap-defaults defaults/api-defaults)
+      (rf/wrap-restful-format {:keywordize? true})))

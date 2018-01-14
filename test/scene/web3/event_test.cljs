@@ -4,12 +4,12 @@
             [scene.web3.fixtures :as fixtures]
             [scene.stest :refer [deftest-spec] :include-macros true]
             [clojure.spec.test.alpha :as stest]
-            [scene.utils :refer [clj->json]]))
+            [scene.utils :refer [clj->json js->json]]))
 
 
 (t/deftest test-create-decoder
   (let [decode (sut/create-decoder fixtures/event)]
-    (t/is (= (-> fixtures/log decode :args clj->json)
+    (t/is (= (-> fixtures/log decode (aget "args") js->json)
              (clj->json {:_from  "0x00a329c0648769a73afac7f9381e08fb43dbea72"
                          :_to    "0xef59cb8748e54ea2a7aaa0699430271000000000"
                          :_value "754"})))))

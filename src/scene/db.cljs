@@ -1,5 +1,6 @@
 (ns scene.db
-  (:require [mount.core :refer [defstate]]
+  (:require [clojure.core.async :refer [chan]]
+            [mount.core :refer [defstate]]
             [promesa.core :as p]
             [scene.config :as config]
             [scene.interop :as interop]
@@ -24,6 +25,7 @@
                   #(.collection % "logs")
                   (fn [coll]
                     (.createIndex coll #js {:_id 1})
+                    (.createIndex coll #js {:blockNumber 1})
                     (.createIndex coll #js {:signature 1})
                     (.createIndex coll #js {:signature 1 :address 1})
                     coll)
@@ -91,16 +93,19 @@
 (defn parse-events
   [raw-events decoder]
   (.map raw-events decoder))
-                                        ;TODO: cursor -> channel -> stream
+
 
 (defn- get-logs*
-  [decoder filter]
-  (-> @logs-collection
-      (p/chain #(.find % (clj->js filter))
-               #(.limit % 1000)
-               #(.toArray %)
-               #(parse-events % decoder))
-       utils/promise->chan))
+  ([decoder filter]
+   (get-logs* decoder filter 1000))
+  ([decoder filter limit]
+   (let [ch (chan 2 (map decoder))]
+     (p/chain @logs-collection
+              #(.find % (clj->js filter))
+              #(.sort % #js { :blockNumber -1 })
+              #(.limit % limit)
+              #(utils/cursor->chan % ch))
+     ch)))
 
 (defn get-logs
   ([decoder signature]

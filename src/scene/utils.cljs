@@ -1,6 +1,20 @@
 (ns scene.utils
-  (:require [clojure.core.async :refer [chan put!]]
-            [taoensso.timbre :refer-macros [error info]]))
+  (:require [clojure.core.async :refer [<! >! chan close! onto-chan put!]]
+            [taoensso.timbre :refer-macros [error info]])
+  (:require-macros [cljs.core.async.macros :refer [go]]))
+
+(defn logger
+  "logger for `->` and `->>` macros"
+  [x]
+  (info x)
+  x)
+
+
+(defn logger-fn [desc]
+  (fn [data]
+    (info desc)
+    data))
+
 
 (defn callback->clj
   "convert data from node style callback function to clojure"
@@ -18,34 +32,45 @@
 
 (defn promise->chan
   "return channel with result from promise"
-  [promise]
-  (let [ch (chan 1)]
+  ([promise]
+   (promise->chan promise (chan 1)))
+  ([promise ch]
     (-> promise
         (.then (fn [data]
-                 (put! ch {:data (js->clj data :keywordize-keys true)})))
+                 (put! ch data :keywordize-keys true)))
         (.catch (fn [err]
                   (error err)
-                  (put! ch {:error (js->clj err :keywordize-keys true)}))))
+                  (onto-chan ch [{:error err}]))))
     ch))
 
 
-(defn clj->json
+(defn js->json
+  "convert js object to json"
+  [obj]
+  (.stringify js/JSON obj))
+
+
+(def clj->json
   "convert clojure object to json"
-  [ds]
-  (.stringify js/JSON (clj->js ds)))
+  (comp js->json clj->js))
 
 
-(defn logger
-  "logger for `->` and `->>` macros"
-  [x]
-  (info x)
-  x)
-
-
-(defn logger-fn [desc]
-  (fn [data]
-    (info desc)
-    data))
+(defn cursor->chan
+  "conver mongdb cursor to chan"
+  ([cur]
+   (cursor->chan cur (chan 1)))
+  ([cur ch]
+   (go
+     (while (-> cur
+             (.hasNext)
+             promise->chan
+             <!)
+       (->> cur
+            (.next)
+            promise->chan
+            <!
+            (>! ch)))
+     (close! ch))))
 
 
 (defn int->hex
