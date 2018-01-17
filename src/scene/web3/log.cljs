@@ -64,7 +64,7 @@
                                                 to
                                                 step)
                            false)))
-        (recur (inc to) (a/alts! [(a/timeout 100) poison-ch]))))
+        (recur (inc to) (a/alts! [(a/timeout 500) poison-ch]))))
     (->DataGetter ch poison-ch)))
 
 (defn create-log-getter
