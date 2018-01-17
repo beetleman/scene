@@ -76,9 +76,9 @@
         poison-ch (chan 1)]
     (go-loop [[v c] (a/alts! [ranges-ch poison-ch])]
       (when-let [range (and (not= c poison-ch) v)]
-        (-> (.filter (.. web3 -eth)
-                     (clj->js range))
-            (.get (utils/callback-chan-fn result-ch)))
+        (.get (.filter (.. web3 -eth)
+                       (clj->js range))
+              (utils/callback-chan-fn result-ch))
         (info "getting logs for range" range)
         (>! logs-ch (<! result-ch))
         (recur (a/alts! [ranges-ch poison-ch]))))

@@ -42,7 +42,7 @@
 (def valid-solidity-name-regex #"^[a-zA-Z_][a-zA-Z0-9_]*$")
 (s/def ::valid-solidity-name (s/and string?
                                     #(re-matches valid-solidity-name-regex %)
-                                    #(> (count %) 0)))
+                                    #(pos? (count %))))
 (s/def ::anonymous boolean?)
 (s/def ::name ::valid-solidity-name)
 (s/def ::type #{"event"})

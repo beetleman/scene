@@ -23,8 +23,7 @@
 
 
 (defstate log-getter
-  :start (-> (log/data @log-ranges-getter)
-             start-log-getter)
+  :start (start-log-getter (log/data @log-ranges-getter))
   :stop (log/stop @log-getter))
 
 

@@ -18,7 +18,7 @@
   ([name]
    (name<M>-spec* name 8 257))
   ([name from to]
-   (name<M>-spec* name from to #(= 0 (mod % 8)) #{name}))
+   (name<M>-spec* name from to #(zero? (mod % 8)) #{name}))
   ([name from to filter-fn initial]
    (into initial (map #(str name %) (filter filter-fn (range from to))))))
 

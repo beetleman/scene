@@ -24,6 +24,9 @@
             [macchiato/lein-npm "0.6.3"]
             [lein-figwheel "0.5.14"]
             [lein-cljsbuild "1.1.7"]
+            ;; kibit
+            [lein-kibit "0.1.6"]
+            [lein-auto "0.1.3"]
             ;; for cider repl
             [refactor-nrepl "2.4.0-SNAPSHOT"]
             [cider/cider-nrepl "0.17.0-SNAPSHOT"]]

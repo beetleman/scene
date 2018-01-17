@@ -27,6 +27,22 @@ services:
       service: build-base
     command: release
 
+
+  kibit:
+    extends:
+      file: ./docker-compose-base.yml
+      service: test-base
+    entrypoint: []
+    command: lein kibit
+
+  kibit-watch:
+    extends:
+      file: ./docker-compose-base.yml
+      service: test-base
+    entrypoint: []
+    command: lein auto kibit
+
+
   test-watch:
     links:
       - testrpc

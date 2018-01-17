@@ -77,5 +77,6 @@
   ([n]
    (int->hex n 0))
   ([n pad-to]
-   (-> (.toString n 16)
-       (.padStart pad-to "0"))))
+   (.padStart (.toString n 16)
+              pad-to
+              "0")))
