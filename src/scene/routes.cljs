@@ -16,10 +16,16 @@
 ;; -- routes handlers
 
 (defn health [req res raise]
-  (r/ok {:ok true}))
+  (-> {:ok true}
+      r/ok
+      res))
 
 (defn not-found [req res raise]
-  (r/not-found {:msg (str "`" (:uri req) "` was not found")}))
+  (let [method (-> req :request-method name str clojure.string/upper-case)
+        url    (:uri req)]
+    (-> {:msg (str "\"" method "\" on \"" url "\" was not found")}
+        r/not-found
+        res)))
 
 (defn events [req res raise]
   (let [{abi               :body
