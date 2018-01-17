@@ -107,7 +107,13 @@
               #(utils/cursor->chan % ch))
      ch)))
 
+
+(def get-newest-log
+  "return newest log saved in db"
+  (partial get-logs* identity #js{} 1))
+
 (defn get-logs
+  "return newest 1000 block for given `signature` or `signature` and `address`"
   ([decoder signature]
    (get-logs* decoder {:signature signature}))
   ([decoder address signature]

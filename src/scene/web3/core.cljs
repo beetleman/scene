@@ -16,7 +16,9 @@
 
 
 (defstate log-ranges-getter
-  :start (log/create-block-ranges-getter web3 0 config/chunk-size)
+  :start (log/create-block-ranges-getter web3
+                                         (db/get-newest-log)
+                                         config/chunk-size)
   :stop (log/stop @log-ranges-getter))
 
 

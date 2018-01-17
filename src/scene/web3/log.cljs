@@ -45,15 +45,15 @@
 
 (defn create-block-ranges-getter
   "create 'IStoppable' 'IDataProvider' with block ranges
-  from `from` to 'latest' with max `step`"
-  [web3 from step]
+  from `from-ch` to 'latest' with max `step`"
+  [web3 from-ch step]
   (let [ch           (chan 1)
         block-number #(go (-> web3
                               current-block-number
                               <!
                               :data))
         poison-ch    (chan 1)]
-    (go-loop [from from
+    (go-loop [from (<! from-ch)
               [_ c] [nil nil]]
       ;; stream ranges to chan
       (when-let [to (and (not= c poison-ch)
