@@ -1,10 +1,11 @@
 (ns scene.db
-  (:require [clojure.core.async :refer [chan]]
+  (:require [clojure.core.async :refer [<! chan]]
             [mount.core :refer [defstate]]
             [promesa.core :as p]
             [scene.config :as config]
             [scene.interop :as interop]
-            [scene.utils :as utils]))
+            [scene.utils :as utils])
+  (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (def MongoClient (.-MongoClient (js/require "mongodb")))
 
@@ -108,9 +109,16 @@
      ch)))
 
 
-(def get-newest-log
-  "return newest log saved in db"
+(def get-latest-log
+  "return lates saved log in db"
   (partial get-logs* identity #js{} 1))
+
+(defn get-latest-block-number
+  "return bock number for latest saved log in db"
+  []
+  (go (-> (get-latest-log)
+          <!
+          (aget "blockNumber"))))
 
 (defn get-logs
   "return newest 1000 block for given `signature` or `signature` and `address`"

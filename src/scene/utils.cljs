@@ -6,7 +6,7 @@
 (defn logger
   "logger for `->` and `->>` macros"
   [x]
-  (info x)
+  (info (js->clj x))
   x)
 
 
@@ -18,9 +18,10 @@
 
 (defn callback->clj
   "convert data from node style callback function to clojure"
-  [error data]
-  {:data data
-   :error error})
+  [err d]
+  (when err (error err))
+  {:data d
+   :error err})
 
 
 (defn callback-chan-fn
