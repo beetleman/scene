@@ -33,7 +33,8 @@
     (if-let [validation-error (s/explain-data :scene.web3.event/event-abi abi)]
       (-> validation-error
           parse-error
-          r/bad-request)
+          r/bad-request
+          res)
         (let [decoder (web3event/create-decoder abi)
               getter  (if address
                         (partial db/get-logs decoder address)
