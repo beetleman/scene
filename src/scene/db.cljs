@@ -116,9 +116,9 @@
 (defn get-latest-block-number
   "return bock number for latest saved log in db"
   []
-  (go (-> (get-latest-log)
-          <!
-          (aget "blockNumber"))))
+  (go (if-let [log (<! (get-latest-log))]
+        (or (.-blockNumber log) 0)
+        0)))
 
 (defn get-logs
   "return newest 1000 block for given `signature` or `signature` and `address`"
