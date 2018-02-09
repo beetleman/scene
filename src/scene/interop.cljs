@@ -1,19 +1,20 @@
-(ns scene.interop)
+(ns scene.interop
+  (:require [goog.object :as gobj]))
 
 (defn get-topic [log n]
-  (aget log "topics" n))
+  (gobj/get log "topics" n))
 
 (defn get-address [log]
-  (aget log "address"))
+  (gobj/get log "address"))
 
 (defn get-block-number [log]
-  (aget log "blockNumber"))
+  (gobj/get log "blockNumber"))
 
 (defn get-log-index [log]
-  (aget log "logIndex"))
+  (gobj/get log "logIndex"))
 
 (defn get-id [log]
-  (aget log "_id"))
+  (gobj/get log "_id"))
 
 (defn js-merge [obj data]
   (.assign js/Object
