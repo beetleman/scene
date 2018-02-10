@@ -15,7 +15,6 @@
   :stop (p/map #(.close %)
                @conn))
 
-
 (defstate db
   :start (-> @conn
              (p/chain #(.db % config/db-name)
@@ -70,15 +69,6 @@
       (.upsert)
       (.replaceOne to-save)))
 
-(defn save-log
-  [log]
-  (let [to-save (log->db-json log)
-        save (partial save-in-collection to-save)]
-    (-> @logs-collection
-        (p/then save)
-        utils/promise->chan)))
-
-
 (defn save-logs
   [logs]
   (let [to-save (logs->db-json logs)]
@@ -89,12 +79,6 @@
                    batch))
         (p/then #(.execute %))
         utils/promise->chan)))
-
-
-(defn parse-events
-  [raw-events decoder]
-  (.map raw-events decoder))
-
 
 (defn- get-logs*
   ([decoder filter]

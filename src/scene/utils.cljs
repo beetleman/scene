@@ -19,7 +19,8 @@
 (defn callback->clj
   "convert data from node style callback function to clojure"
   [err d]
-  (when err (error err))
+  (when err
+    (error (.toString err)))
   {:data d
    :error err})
 
@@ -40,7 +41,7 @@
         (.then (fn [data]
                  (put! ch data :keywordize-keys true)))
         (.catch (fn [err]
-                  (error err)
+                  (error (.toString err))
                   (onto-chan ch [{:error err}]))))
     ch))
 

@@ -4,7 +4,6 @@
             [cljs.test :as t :include-macros true]
             [clojure.spec.test.alpha :as stest]
             [scene.stest :refer [deftest-spec] :include-macros true]
-            [scene.web3.fixtures :as fixtures]
             [clojure.spec.alpha :as s])
   (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
 

@@ -1,7 +1,7 @@
 (ns scene.utils-test
-  (:require [scene.utils :as sut]
+  (:require [cljs.test :as t :include-macros true]
             [clojure.core.async :as a]
-            [cljs.test :as t :include-macros true])
+            [scene.utils :as sut])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (t/deftest callback-cljs

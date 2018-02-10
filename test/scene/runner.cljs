@@ -4,6 +4,8 @@
             [scene.web3.log-test]
             [scene.utils-test]
             [scene.db-test]
+            [taoensso.timbre :as timbre]
             [scene.web3.event-test]))
 
+(timbre/set-level! :fatal)
 (doo-all-tests #"(scene)\..*-test")
