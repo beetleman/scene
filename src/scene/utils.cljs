@@ -51,10 +51,25 @@
   [obj]
   (.stringify js/JSON obj))
 
+(defn json->js
+  "convert json to js object"
+  [s]
+  (.parse js/JSON s))
 
-(def clj->json
+
+(defn clj->json
   "convert clojure object to json"
-  (comp js->json clj->js))
+  [m]
+  (-> m
+      clj->js
+      js->json))
+
+(defn json->clj
+  "convert json to clojure object"
+  [s]
+  (-> s
+      json->js
+      (js->clj :keywordize-keys true)))
 
 
 (defn cursor->chan

@@ -51,7 +51,7 @@
 (def routes
   ["/"
    [["" {:get health}]
-    ["events" {:get events}]]])
+    ["events" {:post events}]]])
 
 
 (defn router [req res raise]

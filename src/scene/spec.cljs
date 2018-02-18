@@ -2,7 +2,7 @@
   (:require [clojure.spec.alpha :as s]
             [clojure.spec.test.alpha :as stest]
             [clojure.spec.gen.alpha :as gen]
-            [scene.utils :refer [int->hex]]
+            [scene.utils :refer [int->hex json->clj]]
             [clojure.core.async :as a]))
 
 
@@ -33,3 +33,8 @@
 (s/def ::address-type #{"address"})
 (s/def ::bool-type #{"bool"})
 (s/def ::solidity-types solidity-types-spec)
+
+(def json-conformer (s/conformer
+                     #(try (json->clj %)
+                           (catch js/Object _
+                             ::s/invalid))))

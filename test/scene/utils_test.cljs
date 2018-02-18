@@ -31,3 +31,9 @@
            "\"json\""))
   (t/is (= (sut/clj->json {:numbers [1 2 3]})
            "{\"numbers\":[1,2,3]}")))
+
+(t/deftest json->clj
+  (t/is (= (sut/json->clj "\"json\"" )
+           "json"))
+  (t/is (= (sut/json->clj "{\"numbers\":[1,2,3]}")
+           {:numbers [1 2 3]})))
