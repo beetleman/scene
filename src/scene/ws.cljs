@@ -17,7 +17,7 @@
 (defmethod on-message :default [_]
   (error "unknow message or wrong message"))
 
-
+;; TODO: multimethod spec
 (s/def ::type #{"echo"})
 (s/def ::payload (complement nil?))
 (s/def ::parsed-message (s/keys :req-un [::type
@@ -25,6 +25,9 @@
 (s/def ::message (s/and string?
                         json-conformer
                         ::parsed-message))
+;; TODO
+;; state machine for ws
+;; atom for all sockets
 
 (defn handler [websocket message]
   (->> message

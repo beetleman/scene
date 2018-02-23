@@ -62,14 +62,14 @@
                to-save
                #js {:upset true}))
 
-(defn- save-in-batch
+(defn- save-in-batch ;TODO: attach spec
   [to-save batch]
   (-> batch
       (.find #js {:_id (interop/get-id to-save)})
       (.upsert)
       (.replaceOne to-save)))
 
-(defn save-logs
+(defn save-logs ;TODO: attach spec
   [logs]
   (let [to-save (logs->db-json logs)]
     (-> @logs-collection
@@ -80,7 +80,7 @@
         (p/then #(.execute %))
         utils/promise->chan)))
 
-(defn- get-logs*
+(defn- get-logs* ;TODO: attach spec
   ([decoder filter]
    (get-logs* decoder filter 1000))
   ([decoder filter limit]

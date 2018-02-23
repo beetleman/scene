@@ -25,14 +25,14 @@
    :error err})
 
 
-(defn callback-chan-fn
+(defn callback-chan-fn ;TODO: revrite it as macro for logging
   "return node style callback function"
   [ch]
   (fn [error data]
     (put! ch (callback->clj error data))))
 
 
-(defn promise->chan
+(defn promise->chan ;TODO: revrite it as macro for logging
   "return channel with result from promise"
   ([promise]
    (promise->chan promise (chan 1)))

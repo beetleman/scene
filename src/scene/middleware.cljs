@@ -9,7 +9,14 @@
 
 
 ;; overuse of multi arity to detect if first element is procesed
-                                        ;TODO: abstract away core of thi fuction
+
+;;  TODO:
+;;- dont use multi arity for add "[" on the begining
+;;- dont use seperator as prefix
+;;- dont use `recur`!!!
+
+;;  NICE TO HAVE
+;;- add `partition` parametr for choice how many elements send to client in chunk
 (defn- from-chan-to-respone
   ([ch node-server-response raise]
    (.write node-server-response "["
