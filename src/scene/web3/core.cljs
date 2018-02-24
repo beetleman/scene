@@ -2,6 +2,7 @@
   (:require [mount.core :refer [defstate]]
             [scene.config :as config]
             [scene.db :as db]
+            [scene.protocols :as protocols]
             [scene.web3.log :as log]))
 
 (def Web3 (js/require "web3"))
@@ -19,15 +20,15 @@
   :start (log/create-block-ranges-getter web3
                                          (db/get-latest-block-number)
                                          config/chunk-size)
-  :stop (log/stop @log-ranges-getter))
+  :stop (protocols/stop @log-ranges-getter))
 
 
 (defstate log-getter
-  :start (start-log-getter (log/data @log-ranges-getter))
-  :stop (log/stop @log-getter))
+  :start (start-log-getter (protocols/data @log-ranges-getter))
+  :stop (protocols/stop @log-getter))
 
 
 (defstate log-getter-saver
   :start (log/create-data-handler @log-getter
                                   db/save-logs)
-  :stop (log/stop @log-getter-saver))
+  :stop (protocols/stop @log-getter-saver))

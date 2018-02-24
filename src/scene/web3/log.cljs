@@ -2,19 +2,14 @@
   (:require [clojure.core.async :as a :refer [<! >! chan put!]]
             [clojure.spec.alpha :as s]
             [scene.utils :as utils]
+            [scene.protocols :as protocols]
             [taoensso.timbre :refer-macros [info]])
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
 
-(defprotocol IStoppable
-  (stop [this] "stop it"))
-
-(defprotocol IDataProvider
-  (data [this] "provide chan with data"))
-
 (defrecord DataGetter [data-ch poison-ch]
-  IStoppable
+  protocols/IStoppable
   (stop [_] (put! poison-ch :stop))
-  IDataProvider
+  protocols/IDataProvider
   (data [_] data-ch))
 
 (defn current-block-number
@@ -89,9 +84,9 @@
   "pass all data from IDataProvider `d` to `handler` function"
   [provider handler]
   (let [poison-ch (chan 1)]
-    (go-loop [[{d :data} c] (a/alts! [poison-ch (data provider)])]
+    (go-loop [[{d :data} c] (a/alts! [poison-ch (protocols/data provider)])]
       (when-not (= c poison-ch)
         (<! (handler d))
-        (recur (a/alts! [poison-ch (data provider)]))))
-    (reify IStoppable
+        (recur (a/alts! [poison-ch (protocols/data provider)]))))
+    (reify protocols/IStoppable
            (stop [_] (put! poison-ch :stop)))))
