@@ -33,7 +33,7 @@ Once Figwheel and node are running, you can connect to the remote REPL at `local
 Type following code in the REPL to connect to Figwheel ClojureScript REPL.
 
 ```clojure
-(do (start-fw) 
+(do (start-fw)
     (cljs))
 ```
 
@@ -44,3 +44,54 @@ Type following code in the REPL to connect to Figwheel ClojureScript REPL.
 docker-compose up release
 ```
 
+### How to use WS
+
+#### example of subscribe call
+
+```json
+{
+  "type": "subscribe",
+  "payload": {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "_owner",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "_value",
+        "type": "uint256"
+      }
+    ],
+    "name": "Balance",
+    "type": "event"
+  }
+}
+```
+
+#### example of unsubscribe call
+
+```json
+{
+  "type": "unsubscribe",
+  "payload": {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "_owner",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "_value",
+        "type": "uint256"
+      }
+    ],
+    "name": "Balance",
+    "type": "event"
+  }
+}
+```

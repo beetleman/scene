@@ -3,6 +3,7 @@
             [clojure.spec.alpha :as s]
             [macchiato.util.response :as r]
             [scene.db :as db]
+            [scene.web3.event :as event]
             [scene.web3.event :as web3event]))
 
 ;; -- utils
@@ -30,7 +31,7 @@
 (defn events [req res raise]
   (let [{abi               :body
          {:keys [address]} :params} req]
-    (if-let [validation-error (s/explain-data :scene.web3.event/event-abi abi)]
+    (if-let [validation-error (s/explain-data ::event/event-abi abi)]
       (-> validation-error
           parse-error
           r/bad-request
