@@ -14,6 +14,8 @@
           :data                "0x00000000000000000000000000000000000000000000000000000000000002f2"})
 (def log-js (clj->js log))
 
+(def signature (get-in log [:topics 0]))
+(def address (:address log))
 
 (def event {:anonymous false,
             :inputs    [{:indexed true,

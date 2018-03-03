@@ -21,9 +21,7 @@
 (t/deftest test-abi->signature
   (t/testing "if generate signature from given abi"
     (t/is (= (sut/abi->signature data/event)
-             (-> data/log
-                 :topics
-                 first)))))
+             data/signature))))
 
 
 (deftest-spec spec-Ox `sut/Ox)
