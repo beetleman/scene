@@ -9,21 +9,28 @@
       (dissoc m k)
       m)))
 
+(defn- unsubscribe-by-sub-id [registry id sub-id]
+  (-> registry
+      (update-in [:sub-id->conns sub-id] dissoc id)
+      (update :sub-id->conns (cleanup-fn sub-id))
+      (update-in [:conn-id->subs-id id] #(disj % sub-id))
+      (update :conn-id->subs-id (cleanup-fn id))))
+
 (defn- unsubscribe* [registry id abi address]
-  (let [sub-id  (create-sub-id :abi abi :address address)
-        subs-id (get-in registry [:conn-id->subs-id id] #{})]
-    (-> registry
-        (update-in [:sub-id->conns sub-id] dissoc id)
-        (update :sub-id->conns (cleanup-fn sub-id))
-        (update-in [:conn-id->subs-id id] #(disj % sub-id))
-        (update :conn-id->subs-id (cleanup-fn id)))))
+  (let [sub-id  (create-sub-id :abi abi :address address)]
+    (unsubscribe-by-sub-id registry id sub-id)))
 
 (defn unsubscribe [registry id abi address]
   (swap! registry unsubscribe* id abi address))
 
-#_{:subs {[signature address]   [cons]
-          {:signature :address} [cons]}
-   :cons {"id" [subs-keys]}}
+(defn- unsubscribe-all* [registry id]
+  (reduce (fn [reg sub-id]
+            (unsubscribe-by-sub-id reg id sub-id))
+          registry
+          (get-in registry [:conn-id->subs-id id] #{})))
+
+(defn unsubscribe-all [registry id]
+  (swap! registry unsubscribe-all* id))
 
 (defn- create-sub-id [& {:keys [abi address]}]
   {:signature (if abi

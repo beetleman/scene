@@ -21,7 +21,7 @@
 
 (defn register-hooks [{:keys [ws id registry] :as connection-request}]
   (.on ws "close"
-       #(subs/unsubscribe registry id))
+       #(subs/unsubscribe-all registry id))
   (.on ws "message"
        (handler/create-handler connection-request))
   connection-request)
