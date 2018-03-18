@@ -3,6 +3,7 @@
             [scene.ws.middleware :refer [wrap-defaults]]
             [scene.protocols :as protocols]
             [scene.web3.core :refer [log-getter]]
+            [scene.web3.log :refer [create-data-handler]]
             [scene.ws.handler :as handler]
             [mount.core :refer [defstate]]))
 
@@ -10,8 +11,9 @@
   :start (subs/create-subscription-registry))
 
 (defstate subscription-handler
-  :start (subs/create-subscription-handler @subscription-registry
-                                           (protocols/data @log-getter))
+  :start (create-data-handler @log-getter
+                              #(subs/send-logs (protocols/data @subscription-registry)
+                                               %1))
   :stop (protocols/stop @subscription-handler))
 
 

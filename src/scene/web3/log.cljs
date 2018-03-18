@@ -1,5 +1,5 @@
 (ns scene.web3.log
-  (:require [clojure.core.async :as a :refer [<! >! chan put!]]
+  (:require [clojure.core.async :as a :refer [<! >! chan put! mult tap sliding-buffer]]
             [clojure.spec.alpha :as s]
             [scene.utils :as utils]
             [scene.protocols :as protocols]
@@ -10,7 +10,9 @@
   protocols/IStoppable
   (stop [_] (put! poison-ch :stop))
   protocols/IDataProvider
-  (data [_] data-ch))
+  (data [_] (let [c (chan (sliding-buffer 100))]
+              (tap data-ch c)
+              c)))
 
 (defn current-block-number
   "return chan with last block number"
@@ -60,7 +62,7 @@
                                                 step)
                            false)))
         (recur (inc to) (a/alts! [(a/timeout 500) poison-ch]))))
-    (->DataGetter ch poison-ch)))
+    (->DataGetter (mult ch) poison-ch)))
 
 (defn create-log-getter
   "create log getter geting block for givent `ranges` vector
@@ -77,16 +79,17 @@
         (info "getting logs for range" range)
         (>! logs-ch (<! result-ch))
         (recur (a/alts! [ranges-ch poison-ch]))))
-    (->DataGetter logs-ch poison-ch)))
+    (->DataGetter (mult logs-ch) poison-ch)))
 
 
 (defn create-data-handler
   "pass all data from IDataProvider `d` to `handler` function"
   [provider handler]
-  (let [poison-ch (chan 1)]
-    (go-loop [[{d :data} c] (a/alts! [poison-ch (protocols/data provider)])]
+  (let [poison-ch (chan 1)
+        data-ch (protocols/data provider)]
+    (go-loop [[{d :data} c] (a/alts! [poison-ch data-ch])]
       (when-not (= c poison-ch)
         (<! (handler d))
-        (recur (a/alts! [poison-ch (protocols/data provider)]))))
+        (recur (a/alts! [poison-ch data-ch]))))
     (reify protocols/IStoppable
            (stop [_] (put! poison-ch :stop)))))

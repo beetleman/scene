@@ -14,8 +14,6 @@
     (fn [log]
       (.decode event (clj->js log)))))
 
-
-
 (defn Ox
   "add '0x' to string without it"
   [s]

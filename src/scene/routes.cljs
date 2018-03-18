@@ -36,16 +36,9 @@
           parse-error
           r/bad-request
           res)
-        (let [decoder (web3event/create-decoder abi)
-              getter  (if address
-                        (partial db/get-logs decoder address)
-                        (partial db/get-logs decoder))]
-          (-> abi
-              web3event/abi->signature
-              getter
-              r/json
-              res)))))
-
+      (-> (db/get-logs-by-abi abi address)
+          r/json
+          res))))
 
 ;; -- routes
 
@@ -53,7 +46,6 @@
   ["/"
    [["" {:get health}]
     ["events" {:post events}]]])
-
 
 (defn router [req res raise]
   (if-let [{:keys [handler route-params]} (bidi/match-route* routes (:uri req) req)]

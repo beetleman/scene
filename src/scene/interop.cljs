@@ -2,7 +2,7 @@
   (:require [goog.object :as gobj]))
 
 (defn get-topic [log n]
-  (gobj/get log "topics" n))
+  (gobj/get (gobj/get log "topics") n))
 
 (defn get-address [log]
   (gobj/get log "address"))

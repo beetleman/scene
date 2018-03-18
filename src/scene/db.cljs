@@ -4,7 +4,8 @@
             [promesa.core :as p]
             [scene.config :as config]
             [scene.interop :as interop]
-            [scene.utils :as utils])
+            [scene.utils :as utils]
+            [scene.web3.event :as web3event])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (def MongoClient (.-MongoClient (js/require "mongodb")))
@@ -104,10 +105,14 @@
         (or (.-blockNumber log) 0)
         0)))
 
-(defn get-logs
-  "return newest 1000 block for given `signature` or `signature` and `address`"
-  ([decoder signature]
-   (get-logs* decoder {:signature signature}))
-  ([decoder address signature]
-   (get-logs* decoder {:signature signature
-                       :address    address})))
+(defn get-logs-by-abi
+  "return newest 1000 block for given `abi` and `address`, `address` ignored if equal `nil`"
+  [abi address]
+  (let [signature (web3event/abi->signature abi)
+        decoder   (web3event/create-decoder abi)
+        filter    (if (nil? address)
+                    {:signature signature}
+                    {:signature signature
+                     :address   address})]
+    (println signature)
+    (get-logs* decoder filter)))

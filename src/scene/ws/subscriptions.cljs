@@ -1,7 +1,23 @@
 (ns scene.ws.subscriptions
-  (:require [mount.core :refer [defstate]]
-            [scene.web3.event :refer [abi->signature]]
-            [scene.protocols :as protocols]))
+  (:require [scene.interop :as interop]
+            [scene.protocols :as protocols]
+            [scene.utils :as utils]
+            [scene.web3.event :refer [abi->signature create-decoder]])
+  (:require-macros [cljs.core.async.macros :refer [go]]))
+
+(defn- create-sender [abi ws]
+  (let [decoder (create-decoder abi)]
+    (fn [log]
+      (->>
+       (decoder log)
+       utils/js->json
+       (.send ws)))))
+
+(defn- create-sub-id [& {:keys [abi address]}]
+  {:signature (if abi
+                (abi->signature abi)
+                abi)
+   :address   address})
 
 (defn- cleanup-fn [k]
   (fn [m]
@@ -32,13 +48,7 @@
 (defn unsubscribe-all [registry id]
   (swap! registry unsubscribe-all* id))
 
-(defn- create-sub-id [& {:keys [abi address]}]
-  {:signature (if abi
-                (abi->signature abi)
-                abi)
-   :address   address})
-
-(defn- subscribe* [registry id conn abi address]
+(defn- subscribe* [registry id ws abi address]
   (let [sub-id (create-sub-id :abi abi :address address)]
     (if (contains? (get-in registry [:conn-id->subs-id id] #{})
                    sub-id)
@@ -50,8 +60,8 @@
                                                 (set [sub-id]))))
           (update-in [:sub-id->conns sub-id] (fn [conns]
                                                (if conns
-                                                 (assoc conns id conn)
-                                                 {id conn})))))))
+                                                 (assoc conns id (create-sender abi ws))
+                                                 {id (create-sender abi ws)})))))))
 
 (defn subscribe [registry id conn abi address]
   (swap! registry subscribe* id conn abi address))
@@ -70,8 +80,17 @@
       protocols/IDataProvider
       (data [_] registry))))
 
-(defn create-subscription-handler [logs-chan registry]
-;; connecto to subs
-  (reify
-    protocols/IStoppable
-    (stop [_] nil)))
+(defn- send-log [registry log]
+  (let [address   (interop/get-address log)
+        signature (interop/get-topic log 0)
+        conns     (mapcat (fn [sub-id]
+                            (vals (get-in @registry [:sub-id->conns sub-id])))
+                          [{:signature signature
+                            :address   address}
+                           {:signature signature
+                            :address nil}])]
+    (doseq [send conns] (send log))))
+
+(defn send-logs [registry logs]
+  (go
+    (.map logs #(send-log registry %))))

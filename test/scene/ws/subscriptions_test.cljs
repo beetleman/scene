@@ -12,7 +12,6 @@
 (def connection-stub :connection-stub)
 (def connection-stub-2 :connection-stub-2)
 
-
 (t/deftest test-create-sub-id
   (t/testing "abi but without address"
     (t/is (= (#'sut/create-sub-id :abi data/event)
@@ -31,35 +30,20 @@
 
 
 (t/deftest test-subscribe
-  (t/testing "subscribe* with address"
-    (t/is
-     (= (#'sut/subscribe* sut/empty-subscription-registry
-                          conn-id
-                          connection-stub
-                          data/event
-                          data/address)
-        {:sub-id->conns    {sub-id {conn-id connection-stub}}
-         :conn-id->subs-id {conn-id (set [sub-id])}})))
+  (with-redefs [sut/create-sender (fn [abi ws]
+                                    (t/is (= abi data/event))
+                                    ws)]
+    (t/testing "subscribe* with address"
+      (t/is
+       (= (#'sut/subscribe* sut/empty-subscription-registry
+                            conn-id
+                            connection-stub
+                            data/event
+                            data/address)
+          {:sub-id->conns    {sub-id {conn-id connection-stub}}
+           :conn-id->subs-id {conn-id (set [sub-id])}})))
 
-  (t/testing "subscribe* dont duplicate"
-    (t/is (= (-> sut/empty-subscription-registry
-                 (#'sut/subscribe*
-                  conn-id
-                  connection-stub
-                  data/event
-                  data/address)
-                 (#'sut/subscribe*
-                  conn-id
-                  connection-stub
-                  data/event
-             data/address))
-             {:sub-id->conns    {sub-id {conn-id connection-stub}}
-              :conn-id->subs-id {conn-id (set [sub-id])}})))
-
-  (t/testing "subscribe* adding same event but with different address"
-    (let [address  "0x00000000000000000000000000000000000000000000000000000000000002f2"
-          sub-id-2 {:signature data/signature
-                    :address   address}]
+    (t/testing "subscribe* dont duplicate"
       (t/is (= (-> sut/empty-subscription-registry
                    (#'sut/subscribe*
                     conn-id
@@ -70,39 +54,57 @@
                     conn-id
                     connection-stub
                     data/event
-                    address))
-               {:sub-id->conns    {sub-id   {conn-id connection-stub}
-                                   sub-id-2 {conn-id connection-stub}}
-                :conn-id->subs-id {conn-id (set [sub-id sub-id-2])}}))))
+                    data/address))
+               {:sub-id->conns    {sub-id {conn-id connection-stub}}
+                :conn-id->subs-id {conn-id (set [sub-id])}})))
 
-  (t/testing "subscribe* adding same event but different connections"
-    (t/is (= (-> sut/empty-subscription-registry
-                 (#'sut/subscribe*
-                  conn-id
-                  connection-stub
-                  data/event
-                  data/address)
-                 (#'sut/subscribe*
-                  conn-id-2
-                  connection-stub-2
-                  data/event
-                  data/address))
-             {:sub-id->conns    {sub-id {conn-id   connection-stub
-                                         conn-id-2 connection-stub-2}}
-              :conn-id->subs-id {conn-id   (set [sub-id])
-                                 conn-id-2 (set [sub-id])}})))
+    (t/testing "subscribe* adding same event but with different address"
+      (let [address  "0x00000000000000000000000000000000000000000000000000000000000002f2"
+            sub-id-2 {:signature data/signature
+                      :address   address}]
+        (t/is (= (-> sut/empty-subscription-registry
+                     (#'sut/subscribe*
+                      conn-id
+                      connection-stub
+                      data/event
+                      data/address)
+                     (#'sut/subscribe*
+                      conn-id
+                      connection-stub
+                      data/event
+                      address))
+                 {:sub-id->conns    {sub-id   {conn-id connection-stub}
+                                     sub-id-2 {conn-id connection-stub}}
+                  :conn-id->subs-id {conn-id (set [sub-id sub-id-2])}}))))
 
-  (t/testing "unpure subscribe"
-    (let [registry (atom sut/empty-subscription-registry)]
-      (sut/subscribe registry
-                     conn-id
-                     connection-stub
-                     data/event
-                     data/address)
-      (t/is
-       (= @registry
-          {:sub-id->conns    {sub-id {conn-id connection-stub}}
-           :conn-id->subs-id {conn-id (set [sub-id])}})))))
+    (t/testing "subscribe* adding same event but different connections"
+      (t/is (= (-> sut/empty-subscription-registry
+                   (#'sut/subscribe*
+                    conn-id
+                    connection-stub
+                    data/event
+                    data/address)
+                   (#'sut/subscribe*
+                    conn-id-2
+                    connection-stub-2
+                    data/event
+                    data/address))
+               {:sub-id->conns    {sub-id {conn-id   connection-stub
+                                           conn-id-2 connection-stub-2}}
+                :conn-id->subs-id {conn-id   (set [sub-id])
+                                   conn-id-2 (set [sub-id])}})))
+
+    (t/testing "unpure subscribe"
+      (let [registry (atom sut/empty-subscription-registry)]
+        (sut/subscribe registry
+                       conn-id
+                       connection-stub
+                       data/event
+                       data/address)
+        (t/is
+         (= @registry
+            {:sub-id->conns    {sub-id {conn-id connection-stub}}
+             :conn-id->subs-id {conn-id (set [sub-id])}}))))))
 
 
 (t/deftest test-unsubscribe
