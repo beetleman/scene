@@ -47,26 +47,30 @@ docker-compose up release
 ### How to use WS
 
 #### example of subscribe call
+address field is optional
 
 ```json
 {
   "type": "subscribe",
   "payload": {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "name": "_owner",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "name": "_value",
-        "type": "uint256"
-      }
-    ],
-    "name": "Balance",
-    "type": "event"
+    "address": "0x0"
+    "abi": {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "_owner",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "_value",
+          "type": "uint256"
+        }
+      ],
+      "name": "Balance",
+      "type": "event"
+    }
   }
 }
 ```
@@ -77,21 +81,24 @@ docker-compose up release
 {
   "type": "unsubscribe",
   "payload": {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "name": "_owner",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "name": "_value",
-        "type": "uint256"
-      }
-    ],
-    "name": "Balance",
-    "type": "event"
+    "address": "0x0"
+    "abi": {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "_owner",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "_value",
+          "type": "uint256"
+        }
+      ],
+      "name": "Balance",
+      "type": "event"
+    }
   }
 }
 ```

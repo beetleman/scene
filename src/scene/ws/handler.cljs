@@ -2,35 +2,49 @@
   (:require [scene.utils :as utils]
             [scene.spec :refer [json-conformer]]
             [scene.web3.event :as event]
+            [scene.ws.subscriptions :as subscriptions]
             [clojure.spec.alpha :as s]))
 
-(defn error [msg]
-  {:mgs msg :type :error})
+(defn msg [type payload]
+  {:type type :payload payload})
 
-(defn msg [msg]
-  {:msg msg :type :msg})
+(defn error [payload]
+  (msg :error payload))
+
+(defn subscribed [abi]
+  (msg :subscribed abi))
+
+(defn unsubscribed [abi]
+  (msg :unsubscribed abi))
 
 (defmulti on-message (fn [_ msg] (:type msg)))
 
 (defmethod on-message "echo" [_ {:keys [payload]}]
-  (str "got message: " payload))
+  (msg :echo payload))
 
-(defmethod on-message "subscribe" [{:keys [id]}
-                                   {:keys [payload]}]
-  (str "id: " id))
+(defmethod on-message "subscribe" [{:keys [id registry ws]}
+                                   {{:keys [abi address]} :payload :as payload}]
+  (subscriptions/subscribe registry id ws abi address)
+  (subscribed payload))
 
-(defmethod on-message "unsubscribe" [_ {:keys [payload]}]
-  (str "got message: " payload))
+(defmethod on-message "unsubscribe" [{:keys [id registry ws]}
+                                     {{:keys [abi address]} :payload :as payload}]
+  (subscriptions/unsubscribe registry id abi address)
+  (unsubscribed payload))
+
 
 (defmethod on-message :default [_ _]
   (error "unknow message or wrong message"))
 
 
-;; TODO: multimethod spec
+(s/def :payload/address string?)
+(s/def :payload/abi ::event/event-abi)
 
 (s/def :echo/payload string?)
-(s/def :subscribe/payload ::event/event-abi)
-(s/def :unsubscribe/payload ::event/event-abi)
+(s/def :subscribe/payload (s/keys :req-un [:payload/abi]
+                                  :opt-un [:payload/address]))
+(s/def :unsubscribe/payload (s/keys :req-un [:payload/abi]
+                                    :opt-un [:payload/address]))
 
 (defmulti parsed-message :type)
 (defmethod parsed-message "echo" [_]
@@ -47,7 +61,6 @@
 (s/def ::message (s/and string?
                         json-conformer
                         ::parsed-message))
-
 
 (defn create-handler [{:keys [ws] :as connection-request}]
   (fn [message]
