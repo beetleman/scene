@@ -2,15 +2,17 @@
   (:require [scene.interop :as interop]
             [scene.protocols :as protocols]
             [scene.utils :as utils]
-            [scene.web3.event :refer [abi->signature create-decoder]])
+            [scene.web3.event :refer [abi->signature create-decoder]]
+            [scene.ws.msg :as msg])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (defn- create-sender [abi ws]
   (let [decoder (create-decoder abi)]
-    (fn [log]
+    (fn [logs]
       (->>
-       (decoder log)
-       utils/js->json
+       (map decoder logs)
+       (msg/logs abi)
+       utils/clj->json
        (.send ws)))))
 
 (defn- create-sub-id [& {:keys [abi address]}]
@@ -89,7 +91,7 @@
                             :address   address}
                            {:signature signature
                             :address nil}])]
-    (doseq [send conns] (send log))))
+    (doseq [send conns] (send [log]))))
 
 (defn send-logs [registry logs]
   (go

@@ -1,40 +1,29 @@
 (ns scene.ws.handler
-  (:require [scene.utils :as utils]
+  (:require [clojure.spec.alpha :as s]
             [scene.spec :refer [json-conformer]]
+            [scene.utils :as utils]
             [scene.web3.event :as event]
-            [scene.ws.subscriptions :as subscriptions]
-            [clojure.spec.alpha :as s]))
-
-(defn msg [type payload]
-  {:type type :payload payload})
-
-(defn error [payload]
-  (msg :error payload))
-
-(defn subscribed [abi]
-  (msg :subscribed abi))
-
-(defn unsubscribed [abi]
-  (msg :unsubscribed abi))
+            [scene.ws.msg :as msg]
+            [scene.ws.subscriptions :as subscriptions]))
 
 (defmulti on-message (fn [_ msg] (:type msg)))
 
 (defmethod on-message "echo" [_ {:keys [payload]}]
-  (msg :echo payload))
+  (msg/generic :echo payload))
 
 (defmethod on-message "subscribe" [{:keys [id registry ws]}
                                    {{:keys [abi address]} :payload :as payload}]
   (subscriptions/subscribe registry id ws abi address)
-  (subscribed payload))
+  (msg/subscribed payload))
 
 (defmethod on-message "unsubscribe" [{:keys [id registry ws]}
                                      {{:keys [abi address]} :payload :as payload}]
   (subscriptions/unsubscribe registry id abi address)
-  (unsubscribed payload))
+  (msg/unsubscribed payload))
 
 
 (defmethod on-message :default [_ _]
-  (error "unknow message or wrong message"))
+  (msg/error "unknow message or wrong message"))
 
 
 (s/def :payload/address string?)
