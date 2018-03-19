@@ -53,7 +53,7 @@ address field is optional
 {
   "type": "subscribe",
   "payload": {
-    "address": "0x0"
+    "address": "0x0",
     "abi": {
       "anonymous": false,
       "inputs": [
@@ -81,7 +81,7 @@ address field is optional
 {
   "type": "unsubscribe",
   "payload": {
-    "address": "0x0"
+    "address": "0x0",
     "abi": {
       "anonymous": false,
       "inputs": [
