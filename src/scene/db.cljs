@@ -114,5 +114,4 @@
                     {:signature signature}
                     {:signature signature
                      :address   address})]
-    (println signature)
     (get-logs* decoder filter)))

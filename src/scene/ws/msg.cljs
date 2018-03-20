@@ -14,3 +14,6 @@
 
 (defn logs [abi logs]
   (generic :logs {:abi abi :logs logs}))
+
+(defn logs-snapshot [abi logs]
+  (generic :logs-snapshot {:abi abi :logs logs}))

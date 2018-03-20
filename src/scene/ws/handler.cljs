@@ -1,10 +1,18 @@
 (ns scene.ws.handler
   (:require [clojure.spec.alpha :as s]
+            [clojure.core.async :as async]
             [scene.spec :refer [json-conformer]]
             [scene.utils :as utils]
             [scene.web3.event :as event]
             [scene.ws.msg :as msg]
-            [scene.ws.subscriptions :as subscriptions]))
+            [scene.db :as db]
+            [scene.ws.subscriptions :as subscriptions])
+  (:require-macros [cljs.core.async.macros :refer [go]]))
+
+(defn send [ws msg]
+  (->> msg
+      utils/clj->json
+      (.send ws)))
 
 (defmulti on-message (fn [_ msg] (:type msg)))
 
@@ -14,13 +22,19 @@
 (defmethod on-message "subscribe" [{:keys [id registry ws]}
                                    {{:keys [abi address]} :payload :as payload}]
   (subscriptions/subscribe registry id ws abi address)
+  (go
+    (->>
+     (db/get-logs-by-abi abi address)
+     (async/into [])
+     async/<!
+     (msg/logs-snapshot abi)
+     (send ws)))
   (msg/subscribed payload))
 
 (defmethod on-message "unsubscribe" [{:keys [id registry ws]}
                                      {{:keys [abi address]} :payload :as payload}]
   (subscriptions/unsubscribe registry id abi address)
   (msg/unsubscribed payload))
-
 
 (defmethod on-message :default [_ _]
   (msg/error "unknow message or wrong message"))
@@ -56,5 +70,4 @@
     (->> message
          (s/conform ::message)
          (on-message connection-request)
-         utils/clj->json
-         (.send ws))))
+         (send ws))))
