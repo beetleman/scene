@@ -1,7 +1,7 @@
 (ns scene.ws.handler
   (:require [clojure.spec.alpha :as s]
             [clojure.core.async :as async]
-            [scene.spec :refer [json-conformer]]
+            [scene.spec :refer [json-conformer explain-data->problems]]
             [scene.utils :as utils]
             [scene.web3.event :as event]
             [scene.ws.msg :as msg]
@@ -36,8 +36,11 @@
   (subscriptions/unsubscribe registry id abi address)
   (msg/unsubscribed payload))
 
-(defmethod on-message :default [_ _]
-  (msg/error "unknow message or wrong message"))
+
+(defmethod on-message :default [_ error]
+  (msg/error (if error
+               error
+               "unknow message or wrong message")))
 
 
 (s/def :payload/address string?)
@@ -65,9 +68,15 @@
                         json-conformer
                         ::parsed-message))
 
+(defn conform-message [message]
+  (if-let [validation-error (s/explain-data ::message message)]
+    {:reason (explain-data->problems validation-error) :fail-on message}
+    (s/conform ::message message)))
+
+
 (defn create-handler [{:keys [ws] :as connection-request}]
   (fn [message]
     (->> message
-         (s/conform ::message)
+         conform-message
          (on-message connection-request)
          (send ws))))

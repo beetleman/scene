@@ -3,16 +3,14 @@
             [clojure.spec.alpha :as s]
             [macchiato.util.response :as r]
             [scene.db :as db]
+            [scene.spec :refer [explain-data->problems]]
             [scene.web3.event :as event]
             [scene.web3.event :as web3event]))
 
 ;; -- utils
 
-(defn parse-error [{problems :cljs.spec.alpha/problems}]
-  {:error (map (fn [{:keys [pred path]}]
-                    {:path path :is-not pred})
-                  problems)})
-
+(defn parse-error [data]
+  {:errors (explain-data->problems data)})
 
 ;; -- routes handlers
 

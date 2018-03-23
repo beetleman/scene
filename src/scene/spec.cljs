@@ -38,3 +38,19 @@
                      #(try (json->clj %)
                            (catch js/Object _
                              ::s/invalid))))
+
+
+(defn explain-data->problems
+  "extract problems from `explain-data` as vector of errors"
+  [{problems :cljs.spec.alpha/problems}]
+  (map (fn [{:keys [pred path]}]
+         (let [unpacked-pred (if (seq? pred)
+                               (first pred)
+                               pred)]
+           {:path   path
+            :is-not (condp = unpacked-pred
+                      'cljs.spec.alpha/conformer "parsable"
+                      'cljs.core/string? "string"
+                      'cljs.core/boolean? "boolean"
+                      pred)}))
+       problems))
