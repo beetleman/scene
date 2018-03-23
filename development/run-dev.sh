@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-source /usr/local/nvm/nvm.sh
-
+source /root/.bashrc
 
 function scene {
 
@@ -9,7 +8,7 @@ function scene {
     while `sleep 1`;
     do
         if [ -f $TARGET ]; then
-            node --inspect=0.0.0.0:9229  $TARGET
+            node --inspect=0.0.0.0:9229 $TARGET
         fi
     done;
 }
@@ -24,11 +23,6 @@ case "$1" in
     echo "starting repl..."
     scene &
     lein repl-dev
-    ;;
-  release)
-    echo "starting release..."
-    rm release -rf
-    lein release
     ;;
   *)
     echo "starting command \"${@}\"..."

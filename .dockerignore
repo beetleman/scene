@@ -1,2 +1,5 @@
 node_modules
+.m2
+target
+out
 npm-debug.log
