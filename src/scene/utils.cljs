@@ -1,5 +1,6 @@
 (ns scene.utils
   (:require [clojure.core.async :refer [<! >! chan close! onto-chan put!]]
+            [stream :refer [Writable]]
             [taoensso.timbre :refer-macros [error info]])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
@@ -75,19 +76,15 @@
 (defn cursor->chan
   "conver mongdb cursor to chan"
   ([cur]
-   (cursor->chan cur (chan 1)))
+   (cursor->chan cur (chan 100)))
   ([cur ch]
-   (go
-     (while (-> cur
-             (.hasNext)
-             promise->chan
-             <!)
-       (->> cur
-            (.next)
-            promise->chan
-            <!
-            (>! ch)))
-     (close! ch))))
+   (let [write  (fn [data _ next]
+                  (put! ch data #(next)))
+         stream (Writable. #js {:write      write
+                                :objectMode true})]
+     (.pipe cur stream)
+     (.on cur "close" #(close! ch))
+     ch)))
 
 
 (defn int->hex
