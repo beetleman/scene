@@ -12,22 +12,6 @@ services:
       service: dev-base
     command: repl
 
-  repl-kovan:
-    links:
-      - kovan:testrpc
-      - mongo-kovan:mongo
-    extends:
-      file: ./docker-compose-base.yml
-      service: dev-base
-    command: repl
-
-  release:
-    extends:
-      file: ./docker-compose-base.yml
-      service: build-base
-    command: release
-
-
   kibit:
     extends:
       file: ./docker-compose-base.yml
@@ -68,18 +52,6 @@ services:
   testrpc:
     image: beetleman/docker-eth-env:0.0.10
 
-  kovan:
-    image: parity/parity:v1.7.11
-    container_name: parity-kovan
-    cpus: 0.5
-    volumes:
-      - chain:/root/.local/share/io.parity.ethereum
-    ports:
-      - "8180:8180"
-      - "30303:30303"
-      - "8546:8546"
-    command: --chain kovan --unsafe-expose --no-warp --tracing on ui
-
   truffle:
     build:
       context: .
@@ -93,9 +65,3 @@ services:
 
   mongo:
     image: mongo:3.6.0
-
-  mongo-kovan:
-    image: mongo:3.6.0
-
-volumes:
-  chain:

@@ -20,14 +20,19 @@ const createAccountGenerator = () => {
 
 const accountGenerator = createAccountGenerator();
 
-const fireEvents = async (coin) => (setInterval(async () => {
+const fireEvents = (coin) => (setInterval(async () => {
   const amount = Math.floor(Math.random() * 1000);
   const { from, to } = accountGenerator();
   console.log(`send ${amount} metacoin from ${from} to ${to}`);
   await coin.sendCoin(to, amount, { from });
 }, interval));
 
+const fireWithoutEvents = (coin) => (setInterval(async () => {
+  console.log('inc counter');
+  await coin.incCounter();
+}, interval/2));
 
 module.exports = function(callback) {
   MetaCoin.deployed().then(fireEvents);
+  MetaCoin.deployed().then(fireWithoutEvents);
 };

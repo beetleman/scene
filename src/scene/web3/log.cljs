@@ -64,12 +64,18 @@
         (recur (inc to) (a/alts! [(a/timeout 500) poison-ch]))))
     (->DataGetter (mult ch) poison-ch)))
 
+(def not-empty-xform
+  (filter #(-> %
+               :data
+               (.-length)
+               (not= 0))))
+
 (defn create-log-getter
   "create log getter geting block for givent `ranges` vector
   and put then to `DataGetter` using `buffer`"
   [web3 ranges-ch buffer]
   (let [result-ch (chan 1)
-        logs-ch   (chan buffer)
+        logs-ch   (chan buffer not-empty-xform)
         poison-ch (chan 1)]
     (go-loop [[v c] (a/alts! [ranges-ch poison-ch])]
       (when-let [range (and (not= c poison-ch) v)]
