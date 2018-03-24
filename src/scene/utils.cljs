@@ -83,6 +83,7 @@
          stream (Writable. #js {:write      write
                                 :objectMode true})]
      (.pipe cur stream)
+     (.on cur "end" #(close! ch))
      (.on cur "close" #(close! ch))
      ch)))
 
