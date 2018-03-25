@@ -192,8 +192,7 @@ Once Figwheel and node are running, you can connect to the remote REPL at `local
 Type following code in the REPL to connect to Figwheel ClojureScript REPL.
 
 ```clojure
-(do (start-fw)
-    (cljs))
+(quick-dev)
 ```
 
 ### building the release version
