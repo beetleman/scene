@@ -1,0 +1,27 @@
+version: "2.2"
+
+services:
+  scene:
+    image: beetleman/scene
+    ports:
+      - "3000:3000"
+    links:
+      - mongo
+      - kovan
+    environment:
+      - RPC_URL=http://kovan:8545
+      - MONGO_URL=mongodb://mongo:27017/dev
+      - DB_NAME=scene
+
+  mongo:
+    image: mongo:3.6.0
+
+  kovan:
+    image: parity/parity:v1.9.5
+    cpus: 0.5
+    volumes:
+      - kovan-chain:/root/.local/share/io.parity.ethereum
+    command: --chain kovan --unsafe-expose --no-warp --tracing on
+
+volumes:
+  kovan-chain:
